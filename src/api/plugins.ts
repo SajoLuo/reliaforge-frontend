@@ -1,9 +1,7 @@
-import { api } from "@/api/client"
-import {
-  parsePlatformStatusResponse,
-  parsePluginListResponse,
-  parsePluginView,
-} from "@/api/contracts"
+import type { ReliaForgeApi } from "@/api/adapter"
+import { demoApi } from "@/api/demoAdapter"
+import { httpApi } from "@/api/httpAdapter"
+import { isDemo } from "@/config/buildMode"
 import type {
   PlatformStatusResponse,
   PluginAction,
@@ -11,21 +9,18 @@ import type {
   PluginView,
 } from "@/types/plugin"
 
-const PLUGIN_ACTION_TIMEOUT_MS = 310_000
+const activeApi: ReliaForgeApi = isDemo ? demoApi : httpApi
 
 export async function getPlatformStatus(signal?: AbortSignal): Promise<PlatformStatusResponse> {
-  const response = await api.get<unknown>("/status", { signal })
-  return parsePlatformStatusResponse(response.data)
+  return activeApi.getPlatformStatus(signal)
 }
 
 export async function listPlugins(signal?: AbortSignal): Promise<PluginListResponse> {
-  const response = await api.get<unknown>("/plugins", { signal })
-  return parsePluginListResponse(response.data)
+  return activeApi.listPlugins(signal)
 }
 
 export async function getPlugin(pluginId: string, signal?: AbortSignal): Promise<PluginView> {
-  const response = await api.get<unknown>(`/plugins/${encodeURIComponent(pluginId)}`, { signal })
-  return parsePluginView(response.data)
+  return activeApi.getPlugin(pluginId, signal)
 }
 
 export async function runPluginAction(
@@ -33,10 +28,5 @@ export async function runPluginAction(
   action: PluginAction,
   signal?: AbortSignal,
 ): Promise<PluginView> {
-  const path = `/plugins/${encodeURIComponent(pluginId)}/${encodeURIComponent(action)}`
-  const response = await api.post<unknown>(path, undefined, {
-    signal,
-    timeout: PLUGIN_ACTION_TIMEOUT_MS,
-  })
-  return parsePluginView(response.data)
+  return activeApi.runPluginAction(pluginId, action, signal)
 }

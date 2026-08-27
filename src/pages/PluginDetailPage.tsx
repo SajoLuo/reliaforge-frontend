@@ -8,17 +8,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { usePlugin, type UsePluginReturn } from "@/hooks/usePlugins"
 import type { PluginAction, PluginView } from "@/types/plugin"
+import { useLocale } from "@/i18n/useLocale"
+import { pluginPresentation } from "@/i18n/pluginPresentation"
 
 interface ActionDefinition {
   icon: LucideIcon
-  label: string
   variant: "primary" | "secondary" | "danger"
 }
 
 const actionDefinitions: Record<PluginAction, ActionDefinition> = {
-  start: { icon: Play, label: "Start", variant: "primary" },
-  stop: { icon: Square, label: "Stop", variant: "danger" },
-  restart: { icon: RefreshCw, label: "Restart", variant: "secondary" },
+  start: { icon: Play, variant: "primary" },
+  stop: { icon: Square, variant: "danger" },
+  restart: { icon: RefreshCw, variant: "secondary" },
 }
 
 function healthTone(status: string): "success" | "warning" | "danger" | "neutral" {
@@ -29,11 +30,12 @@ function healthTone(status: string): "success" | "warning" | "danger" | "neutral
 }
 
 export function PluginDetailPage() {
+  const { t } = useLocale()
   const { pluginId = "" } = useParams<{ pluginId: string }>()
   const { data, error, loading, refresh, actionPending, actionError, performAction } = usePlugin(pluginId)
 
-  if (loading && !data) return <StatePanel kind="loading" title="Loading plugin" description="Reading the manifest, health snapshot, and lifecycle state." />
-  if (error || !data) return <StatePanel kind="error" title="Plugin unavailable" description={error || "The plugin was not found."} onRetry={refresh} />
+  if (loading && !data) return <StatePanel kind="loading" title={t("detail.loadingTitle")} description={t("detail.loadingDescription")} />
+  if (error || !data) return <StatePanel kind="error" title={t("detail.errorTitle")} description={error || t("detail.notFound")} onRetry={refresh} />
 
   return (
     <PluginDetailContent
@@ -64,15 +66,17 @@ function PluginDetailContent({
   onRefresh,
   performAction,
 }: PluginDetailContentProps) {
+  const { pathFor, t } = useLocale()
+  const presentation = pluginPresentation(data, t)
   return (
     <div className="space-y-8">
-      <Link className="inline-flex items-center gap-2 text-sm font-bold text-muted hover:text-ink" to="/plugins">
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to catalog
+      <Link className="inline-flex items-center gap-2 text-sm font-bold text-muted hover:text-ink" to={pathFor("/plugins")}>
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t("detail.back")}
       </Link>
       <PageHeader
         eyebrow={`${data.id} · API ${data.api_version}`}
-        title={data.name}
-        description={data.description}
+        title={presentation.name}
+        description={presentation.description}
         actions={
           <>
             <Button
@@ -81,7 +85,7 @@ function PluginDetailContent({
               aria-busy={refreshing}
               onClick={() => void onRefresh()}
             >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" /> Refresh
+              <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("common.refresh")}
             </Button>
             {data.available_actions.length ? (
               <LifecycleActions
@@ -99,31 +103,31 @@ function PluginDetailContent({
 
       <section className="grid gap-5 lg:grid-cols-[1fr_1fr]">
         <Card>
-          <CardHeader><h2 className="font-bold">Runtime</h2></CardHeader>
+          <CardHeader><h2 className="font-bold">{t("detail.runtime")}</h2></CardHeader>
           <CardContent className="space-y-4">
-            <DetailRow label="Lifecycle"><PluginStateBadge state={data.state} /></DetailRow>
-            <DetailRow label="Health"><Badge tone={healthTone(data.health.status)}>{data.health.status}</Badge></DetailRow>
-            <DetailRow label="Version"><span className="font-mono text-sm">{data.version}</span></DetailRow>
-            <DetailRow label="Category"><span>{data.frontend.category || "Extension"}</span></DetailRow>
+            <DetailRow label={t("detail.lifecycle")}><PluginStateBadge state={data.state} /></DetailRow>
+            <DetailRow label={t("detail.health")}><Badge tone={healthTone(data.health.status)}>{t(`health.${data.health.status}`)}</Badge></DetailRow>
+            <DetailRow label={t("detail.version")}><span className="font-mono text-sm">{data.version}</span></DetailRow>
+            <DetailRow label={t("detail.category")}><span>{presentation.category}</span></DetailRow>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><h2 className="font-bold">Contract</h2></CardHeader>
+          <CardHeader><h2 className="font-bold">{t("detail.contract")}</h2></CardHeader>
           <CardContent className="space-y-5">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Capabilities</h3>
-              <div className="mt-2 flex flex-wrap gap-2">{data.capabilities.length ? data.capabilities.map((item) => <Badge key={item}>{item}</Badge>) : <span className="text-sm text-muted">None declared</span>}</div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted">{t("detail.capabilities")}</h3>
+              <div className="mt-2 flex flex-wrap gap-2">{data.capabilities.length ? data.capabilities.map((item) => <Badge key={item}>{item}</Badge>) : <span className="text-sm text-muted">{t("detail.noneDeclared")}</span>}</div>
             </div>
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Dependencies</h3>
-              <ul className="mt-2 space-y-1 text-sm">{data.dependencies.length ? data.dependencies.map((item) => <li key={item.id}><span className="font-mono">{item.id}</span> <span className="text-muted">{item.version}</span></li>) : <li className="text-muted">No dependencies</li>}</ul>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted">{t("detail.dependencies")}</h3>
+              <ul className="mt-2 space-y-1 text-sm">{data.dependencies.length ? data.dependencies.map((item) => <li key={item.id}><span className="font-mono">{item.id}</span> <span className="text-muted">{item.version}</span></li>) : <li className="text-muted">{t("detail.noDependencies")}</li>}</ul>
             </div>
           </CardContent>
         </Card>
       </section>
 
       <Card>
-        <CardHeader><h2 className="font-bold">Settings schema</h2><p className="text-sm text-muted">Public configuration shape derived from the plugin&apos;s Python Settings class.</p></CardHeader>
+        <CardHeader><h2 className="font-bold">{t("detail.settingsSchema")}</h2><p className="text-sm text-muted">{t("detail.settingsDescription")}</p></CardHeader>
         <CardContent>
           <pre className="overflow-x-auto rounded-xl bg-inverse p-4 text-xs leading-6 text-code-ink">{JSON.stringify(data.settings_schema, null, 2)}</pre>
         </CardContent>
@@ -140,8 +144,10 @@ interface LifecycleActionsProps {
 }
 
 function LifecycleActions({ actions, pending, disabled, onAction }: LifecycleActionsProps) {
+  const { t } = useLocale()
   return actions.map((action) => {
-    const { icon: Icon, label, variant } = actionDefinitions[action]
+    const { icon: Icon, variant } = actionDefinitions[action]
+    const label = t(`action.${action}`)
     return (
       <Button
         key={action}
@@ -150,7 +156,7 @@ function LifecycleActions({ actions, pending, disabled, onAction }: LifecycleAct
         aria-busy={pending === action}
         onClick={() => {
           const needsConfirmation = action === "stop" || action === "restart"
-          if (needsConfirmation && !window.confirm(`${label} this plugin?`)) return
+          if (needsConfirmation && !window.confirm(t("action.confirm", { action: label }))) return
           void onAction(action)
         }}
       >

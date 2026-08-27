@@ -1,5 +1,7 @@
 # Plugin Contract Rendered by the UI
 
+[简体中文](zh/plugin-contract.md)
+
 The catalog and detail pages consume the same plugin representation.
 
 | Field | Purpose |
@@ -22,3 +24,9 @@ Detail links are always derived from the plugin ID. Health can be degraded while
 running. Platform counts are mutually exclusive: running, degraded, stopped, and error.
 The UI never derives start, stop, or restart availability from lifecycle state. A failed record,
 an unresolved dependency, or active dependents can legitimately produce an empty action list.
+The public read-only demo deliberately supplies empty action lists for every fixture and rejects any
+direct action-adapter call; it does not fork or weaken this production rule.
+
+Localization is a presentation concern. Human-facing labels for lifecycle and health values may be
+translated, but the parsed response, plugin ID, capability identifiers, dependency ranges, versions,
+schema keys, and action values remain unchanged.

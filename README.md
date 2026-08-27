@@ -1,9 +1,14 @@
 # ReliaForge Frontend
 
+[简体中文](README_CN.md)
+
 ReliaForge is a lightweight workspace for lifecycle-managed operations plugins. This repository contains the neutral React management interface. It discovers plugins through the backend API and does not ship a built-in business module catalog.
 
 The Python plugin runtime and management API live in
 [`reliaforge-backend`](https://github.com/SajoLuo/reliaforge-backend).
+
+- [Project site and documentation](https://sajoluo.github.io/reliaforge/)
+- [Read-only online demo](https://sajoluo.github.io/reliaforge-frontend/)
 
 ## What the interface shows
 
@@ -38,8 +43,30 @@ proxy injects identity only on the server side; the backend verifies both its di
 and shared secret and fails management requests closed when that trust boundary is incomplete.
 When `VITE_RELIAFORGE_API_URL` is unset, the client uses the same-origin `/api/v1` path so a
 deployment does not inherit a development-only localhost endpoint.
-The v0.1 web shell assumes it is served from the origin root. Subpath hosting is not part of the
-current deployment contract.
+Normal deployments assume the web shell is served from the origin root. The separate static demo
+build is explicitly configured for the `/reliaforge-frontend/` GitHub Pages path and does not change
+that production contract.
+
+## Online demo
+
+The public demo uses the production pages, hooks, types, and response parsers with a static data
+adapter. It shows the neutral `demo` and `runbook` plugins, but both expose an empty
+`available_actions` array. The demo sends no management API request and does not simulate start,
+stop, restart, persistence, or a hosted backend.
+
+English routes are unprefixed and Simplified Chinese routes use `#/zh/`. The visible language
+switch keeps the current page and query string by changing only the URL locale prefix. The URL is
+the sole persisted locale state, so browser language cannot redirect a shared English URL.
+
+Build and preview the Pages artifact locally:
+
+```bash
+npm run build:demo
+npm run preview:demo
+```
+
+The complete lifecycle experience is covered by the
+[local quick start](https://sajoluo.github.io/reliaforge/guide/getting-started.html).
 
 ## Verification
 
@@ -49,6 +76,7 @@ npm run typecheck
 npm run lint
 npm run test:coverage
 npm run build
+npm run build:demo
 npm run check:hygiene
 npm audit --audit-level=high
 ```
@@ -58,6 +86,7 @@ The optional browser smoke requires a locally installed Playwright browser:
 ```bash
 npx playwright install chromium
 npm run test:e2e
+npm run test:e2e:demo
 ```
 
 For a cross-repository smoke, start the backend with the frontend origin in its CORS list, then run:
@@ -81,9 +110,10 @@ controls and never infers a lifecycle transition from state alone. Restart stops
 and starts the already loaded plugin. It does not imply that the backend reloads Python source or
 a manifest from disk.
 
-GitHub Actions repeats the quality gate on Node.js 20 and 24, then runs the Chromium desktop and
-mobile browser contracts. Coverage is enforced globally at 80% statements/functions/lines and 75%
-branches; current coverage can exceed the gate without weakening it on later changes.
+GitHub Actions repeats the quality gate on Node.js 20 and 24, then runs the normal and read-only
+demo Chromium browser contracts. A `main` build is deployed to GitHub Pages only after those jobs
+pass. Coverage is enforced globally at 80% statements/functions/lines and 75% branches; current
+coverage can exceed the gate without weakening it on later changes.
 
 See [Development](docs/development.md) for the frontend structure and [Plugin contract](docs/plugin-contract.md) for the fields rendered by the UI.
 

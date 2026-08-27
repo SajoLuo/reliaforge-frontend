@@ -1,7 +1,11 @@
 import { Boxes, Gauge, Info, Menu, X } from "lucide-react"
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react"
 import { NavLink } from "react-router-dom"
+import { DemoNotice } from "@/components/layout/DemoNotice"
 import { Button } from "@/components/ui/button"
+import { isDemo } from "@/config/buildMode"
+import { useLocale } from "@/i18n/useLocale"
+import type { MessageKey } from "@/i18n/messages"
 import { cn } from "@/lib/utils"
 
 export interface AppShellProps {
@@ -10,9 +14,9 @@ export interface AppShellProps {
 }
 
 const navigation = [
-  { to: "/", label: "Overview", icon: Gauge },
-  { to: "/plugins", label: "Plugins", icon: Boxes },
-  { to: "/about", label: "About", icon: Info },
+  { to: "/", label: "app.overview", icon: Gauge },
+  { to: "/plugins", label: "app.plugins", icon: Boxes },
+  { to: "/about", label: "app.about", icon: Info },
 ] as const
 
 const focusableSelector = "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])"
@@ -33,6 +37,7 @@ function cycleDrawerFocus(event: KeyboardEvent<HTMLElement>, drawer: HTMLElement
 }
 
 export function AppShell({ children, className }: AppShellProps) {
+  const { locale, pathFor, switchLocale, t } = useLocale()
   const [open, setOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const openButtonRef = useRef<HTMLButtonElement>(null)
@@ -102,7 +107,7 @@ export function AppShell({ children, className }: AppShellProps) {
         id="mobile-navigation"
         role={open ? "dialog" : undefined}
         aria-modal={open ? true : undefined}
-        aria-label="Navigation"
+        aria-label={t("app.navigation")}
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex w-[17rem] flex-col border-r bg-inverse px-4 py-5 text-inverse-ink lg:visible lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
           open ? "visible translate-x-0" : "invisible -translate-x-full",
@@ -110,23 +115,23 @@ export function AppShell({ children, className }: AppShellProps) {
         onKeyDown={handleDrawerKeyDown}
       >
         <div className="flex items-center justify-between px-2">
-          <NavLink to="/" className="flex items-center gap-3" onClick={closeNavigation}>
+          <NavLink to={pathFor("/")} className="flex items-center gap-3" onClick={closeNavigation}>
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-inverse-accent font-black text-inverse">R</span>
             <span>
               <span className="block text-base font-bold">ReliaForge</span>
-              <span className="block text-xs text-inverse-muted">Plugin workspace</span>
+              <span className="block text-xs text-inverse-muted">{t("app.workspace")}</span>
             </span>
           </NavLink>
-          <Button ref={closeButtonRef} className="lg:hidden" variant="ghost" size="small" onClick={closeNavigation} aria-label="Close navigation" aria-controls="mobile-navigation" aria-expanded={open}>
+          <Button ref={closeButtonRef} className="lg:hidden" variant="ghost" size="small" onClick={closeNavigation} aria-label={t("app.closeNavigation")} aria-controls="mobile-navigation" aria-expanded={open}>
             <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
-        <nav className="mt-9 space-y-1" aria-label="Primary navigation">
+        <nav className="mt-9 space-y-1" aria-label={t("app.primaryNavigation")}>
           {navigation.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
-              to={to}
+              to={pathFor(to)}
               end={to === "/"}
               onClick={closeNavigation}
               className={({ isActive }) =>
@@ -137,31 +142,59 @@ export function AppShell({ children, className }: AppShellProps) {
               }
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
+              {t(label as MessageKey)}
             </NavLink>
           ))}
         </nav>
 
-        <div className="mt-auto rounded-xl border border-inverse-ink/10 bg-inverse-ink/5 p-4 text-xs leading-5 text-inverse-muted">
-          A neutral control plane for small, inspectable operations plugins.
+        <div className="mt-auto space-y-3">
+          <div className="rounded-xl border border-inverse-ink/10 bg-inverse-ink/5 p-3">
+            <p className="px-1 text-xs font-semibold text-inverse-muted">{t("app.language")}</p>
+            <div className="mt-2 grid grid-cols-2 gap-2" role="group" aria-label={t("app.language")}>
+              <button
+                type="button"
+                className={cn("rounded-lg px-2 py-2 text-xs font-bold transition-colors", locale === "en" ? "bg-inverse-accent text-inverse" : "bg-inverse-ink/10 text-inverse-muted hover:text-inverse-ink")}
+                aria-label={t("app.switchToEnglish")}
+                aria-pressed={locale === "en"}
+                onClick={() => switchLocale("en")}
+              >
+                {t("app.english")}
+              </button>
+              <button
+                type="button"
+                className={cn("rounded-lg px-2 py-2 text-xs font-bold transition-colors", locale === "zh" ? "bg-inverse-accent text-inverse" : "bg-inverse-ink/10 text-inverse-muted hover:text-inverse-ink")}
+                aria-label={t("app.switchToChinese")}
+                aria-pressed={locale === "zh"}
+                onClick={() => switchLocale("zh")}
+              >
+                {t("app.chinese")}
+              </button>
+            </div>
+          </div>
+          <div className="rounded-xl border border-inverse-ink/10 bg-inverse-ink/5 p-4 text-xs leading-5 text-inverse-muted">
+            {t("app.summary")}
+          </div>
         </div>
       </aside>
 
       <div ref={contentRef} className="min-w-0" data-testid="app-shell-content">
-        <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-canvas/90 px-4 backdrop-blur lg:hidden">
-          <Button
-            ref={openButtonRef}
-            variant="secondary"
-            size="small"
-            onClick={openNavigation}
-            aria-label="Open navigation"
-            aria-controls="mobile-navigation"
-            aria-expanded={open}
-          >
-            <Menu className="h-4 w-4" aria-hidden="true" />
-          </Button>
-          <span className="ml-3 font-bold">ReliaForge</span>
-        </header>
+        <div className="sticky top-0 z-30">
+          {isDemo ? <DemoNotice /> : null}
+          <header className="flex h-16 items-center border-b bg-canvas/90 px-4 backdrop-blur lg:hidden">
+            <Button
+              ref={openButtonRef}
+              variant="secondary"
+              size="small"
+              onClick={openNavigation}
+              aria-label={t("app.openNavigation")}
+              aria-controls="mobile-navigation"
+              aria-expanded={open}
+            >
+              <Menu className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <span className="ml-3 font-bold">ReliaForge</span>
+          </header>
+        </div>
         <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">{children}</main>
       </div>
       {open ? <div className="fixed inset-0 z-30 bg-inverse/55 lg:hidden" role="presentation" onClick={closeNavigation} aria-hidden="true" /> : null}
