@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --canvas: 244 247 246;
+  --panel: 255 255 255;
+  --ink: 25 35 32;
+  --muted: 99 115 109;
+  --line: 216 225 221;
+  --accent: 25 118 91;
+  --accent-soft: 209 238 225;
+  --danger: 185 28 28;
+  --danger-soft: 254 226 226;
+  --danger-ink: 153 27 27;
+  --success-soft: 209 250 229;
+  --success-ink: 6 95 70;
+  --warning-soft: 254 243 199;
+  --warning-ink: 146 64 14;
+  --neutral-soft: 241 245 249;
+  --neutral-ink: 51 65 85;
+  --inverse: 2 6 23;
+  --inverse-ink: 255 255 255;
+  --inverse-muted: 148 163 184;
+  --inverse-accent: 52 211 153;
+  --code-ink: 209 250 229;
+  --shadow: 15 23 42;
+}
+
+* {
+  border-color: rgb(var(--line));
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: rgb(var(--ink));
+  background:
+    radial-gradient(circle at 10% 0%, rgb(var(--accent-soft) / 0.72), transparent 32rem),
+    rgb(var(--canvas));
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  color: rgb(var(--inverse-ink));
+  background: rgb(var(--accent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
