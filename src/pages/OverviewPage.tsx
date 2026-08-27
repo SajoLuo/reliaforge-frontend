@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { usePlatformStatus, usePlugins } from "@/hooks/usePlugins"
 import type { AsyncResource } from "@/hooks/useAsyncResource"
+import { useLocale } from "@/i18n/useLocale"
 
 function isInitialLoad<T>(resource: AsyncResource<T>): boolean {
   return resource.loading && resource.data === null
@@ -18,20 +19,21 @@ function getOverviewSnapshot(status: ReturnType<typeof usePlatformStatus>, catal
 }
 
 export function OverviewPage() {
+  const { pathFor, t } = useLocale()
   const status = usePlatformStatus()
   const catalog = usePlugins()
   const snapshot = getOverviewSnapshot(status, catalog)
 
   if (isInitialLoad(status) || isInitialLoad(catalog)) {
-    return <StatePanel kind="loading" title="Reading platform state" description="ReliaForge is loading the current runtime and plugin catalog." />
+    return <StatePanel kind="loading" title={t("overview.loadingTitle")} description={t("overview.loadingDescription")} />
   }
 
   if (status.error || catalog.error || !snapshot) {
     return (
       <StatePanel
         kind="error"
-        title="Platform state is unavailable"
-        description={status.error || catalog.error || "The API did not return a complete platform snapshot."}
+        title={t("overview.errorTitle")}
+        description={status.error || catalog.error || t("overview.errorFallback")}
         onRetry={async () => Promise.all([status.refresh(), catalog.refresh()]).then(() => undefined)}
       />
     )
@@ -40,27 +42,27 @@ export function OverviewPage() {
   const summary = snapshot.status.plugins
   const featured = snapshot.catalog.plugins.slice(0, 3)
   const metrics = [
-    { label: "Runtime", value: snapshot.status.status, icon: Activity },
-    { label: "Plugins", value: String(summary.total), icon: Boxes },
-    { label: "Running", value: String(summary.running), icon: CircleCheck },
-    { label: "Stopped", value: String(summary.stopped), icon: Square },
-    { label: "Needs attention", value: String(summary.degraded + summary.error), icon: CircleAlert },
+    { label: t("overview.metricRuntime"), value: t(`health.${snapshot.status.status}`), icon: Activity },
+    { label: t("overview.metricPlugins"), value: String(summary.total), icon: Boxes },
+    { label: t("overview.metricRunning"), value: String(summary.running), icon: CircleCheck },
+    { label: t("overview.metricStopped"), value: String(summary.stopped), icon: Square },
+    { label: t("overview.metricAttention"), value: String(summary.degraded + summary.error), icon: CircleAlert },
   ]
 
   return (
     <div className="space-y-9">
       <PageHeader
-        eyebrow={`Runtime ${snapshot.status.version}`}
-        title="Small plugins. Clear boundaries."
-        description="ReliaForge provides one place to inspect plugin contracts, dependencies, health, and lifecycle state without bundling a fixed operations stack."
+        eyebrow={t("overview.eyebrow", { version: snapshot.status.version })}
+        title={t("overview.title")}
+        description={t("overview.description")}
         actions={
           <Button variant="secondary" disabled={status.loading || catalog.loading} onClick={() => void Promise.all([status.refresh(), catalog.refresh()])}>
-            <RefreshCw className="h-4 w-4" aria-hidden="true" /> Refresh
+            <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("common.refresh")}
           </Button>
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Platform summary">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label={t("overview.summaryLabel")}>
         {metrics.map(({ label, value, icon: Icon }) => (
           <Card key={label}>
             <CardContent className="flex items-center gap-4">
@@ -77,13 +79,13 @@ export function OverviewPage() {
       <section>
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Catalog</p>
-            <h2 className="mt-2 text-2xl font-bold">Available plugins</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{t("overview.catalog")}</p>
+            <h2 className="mt-2 text-2xl font-bold">{t("overview.availablePlugins")}</h2>
           </div>
-          <Link className="text-sm font-bold text-accent hover:underline" to="/plugins">View all</Link>
+          <Link className="text-sm font-bold text-accent hover:underline" to={pathFor("/plugins")}>{t("overview.viewAll")}</Link>
         </div>
         {featured.length === 0 ? (
-          <StatePanel kind="empty" title="No plugins discovered" description="Add a plugin package to begin building your workspace." />
+          <StatePanel kind="empty" title={t("overview.emptyTitle")} description={t("overview.emptyDescription")} />
         ) : (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {featured.map((plugin) => <PluginCard key={plugin.id} plugin={plugin} />)}

@@ -2,6 +2,7 @@ import { AlertTriangle, LoaderCircle, PackageOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { useLocale } from "@/i18n/useLocale"
 
 export interface StatePanelProps {
   kind: "loading" | "empty" | "error"
@@ -11,6 +12,7 @@ export interface StatePanelProps {
 }
 
 export function StatePanel({ kind, title, description, onRetry }: StatePanelProps) {
+  const { t } = useLocale()
   const Icon = kind === "loading" ? LoaderCircle : kind === "error" ? AlertTriangle : PackageOpen
   return (
     <Card
@@ -23,7 +25,7 @@ export function StatePanel({ kind, title, description, onRetry }: StatePanelProp
       <p className="mt-2 max-w-md text-sm leading-6 text-muted">{description}</p>
       {onRetry ? (
         <Button className="mt-5" variant="secondary" onClick={() => void onRetry()}>
-          Try again
+          {t("common.retry")}
         </Button>
       ) : null}
     </Card>

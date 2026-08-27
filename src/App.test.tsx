@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import { afterEach, describe, expect, it } from "vitest"
 import { App } from "@/App"
+import { LocaleProvider } from "@/i18n/LocaleProvider"
 
 afterEach(cleanup)
 
@@ -11,5 +12,16 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "About ReliaForge" })).toBeInTheDocument()
     expect(screen.getByText("Manifest first")).toBeInTheDocument()
     expect(screen.getByText("Sajo Luo", { exact: false })).toBeInTheDocument()
+  })
+
+  it("renders the complete Chinese route tree", () => {
+    render(
+      <MemoryRouter initialEntries={["/zh/about"]}>
+        <LocaleProvider><App /></LocaleProvider>
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole("heading", { name: "关于 ReliaForge" })).toBeInTheDocument()
+    expect(screen.getByText("清单优先")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "插件" })).toHaveAttribute("href", "/zh/plugins")
   })
 })

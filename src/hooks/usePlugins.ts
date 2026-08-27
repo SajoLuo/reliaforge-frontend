@@ -3,6 +3,7 @@ import { apiErrorMessage } from "@/api/errors"
 import { getPlatformStatus, getPlugin, listPlugins, runPluginAction } from "@/api/plugins"
 import { useAsyncResource, type AsyncResource } from "@/hooks/useAsyncResource"
 import type { PlatformStatusResponse, PluginAction, PluginListResponse, PluginView } from "@/types/plugin"
+import { useLocale } from "@/i18n/useLocale"
 
 const loadStatus = (signal: AbortSignal): Promise<PlatformStatusResponse> => getPlatformStatus(signal)
 const loadPlugins = (signal: AbortSignal): Promise<PluginListResponse> => listPlugins(signal)
@@ -35,6 +36,7 @@ interface ActiveAction {
 }
 
 export function usePlugin(pluginId: string): UsePluginReturn {
+  const { t } = useLocale()
   const loader = useCallback((signal: AbortSignal) => getPlugin(pluginId, signal), [pluginId])
   const resource = useAsyncResource(loader, pluginId)
   const { refresh: refreshResource, replace: replaceResource } = resource
@@ -91,7 +93,7 @@ export function usePlugin(pluginId: string): UsePluginReturn {
           setActionState({
             routeIdentity: loader,
             pending: action,
-            error: apiErrorMessage(requestError, "Action failed."),
+            error: apiErrorMessage(requestError, t("action.failed")),
           })
         }
         return null
@@ -106,7 +108,7 @@ export function usePlugin(pluginId: string): UsePluginReturn {
         }
       }
     },
-    [loader, pluginId, replaceResource],
+    [loader, pluginId, replaceResource, t],
   )
 
   const actionPending = actionState.routeIdentity === loader ? actionState.pending : null

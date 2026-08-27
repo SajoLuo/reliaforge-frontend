@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { api } from "@/api/client"
-import { getPlugin, listPlugins, runPluginAction } from "@/api/plugins"
+import { getPlatformStatus, getPlugin, listPlugins, runPluginAction } from "@/api/plugins"
 import type { PluginView } from "@/types/plugin"
 
 afterEach(() => vi.restoreAllMocks())
@@ -11,6 +11,17 @@ describe("plugin API", () => {
     vi.spyOn(api, "get").mockResolvedValue({ data: payload })
     await expect(listPlugins()).resolves.toEqual(payload)
     expect(api.get).toHaveBeenCalledWith("/plugins", { signal: undefined })
+  })
+
+  it("returns the parsed platform status payload", async () => {
+    const payload = {
+      status: "healthy",
+      version: "0.1.0",
+      plugins: { total: 0, running: 0, degraded: 0, stopped: 0, error: 0 },
+    }
+    vi.spyOn(api, "get").mockResolvedValue({ data: payload })
+    await expect(getPlatformStatus()).resolves.toEqual(payload)
+    expect(api.get).toHaveBeenCalledWith("/status", { signal: undefined })
   })
 
   it("uses versioned detail and lifecycle action paths", async () => {
