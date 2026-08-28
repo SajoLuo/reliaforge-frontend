@@ -20,8 +20,10 @@ export function StatePanel({ kind, title, description, onRetry }: StatePanelProp
       data-testid={`${kind}-state`}
       role={kind === "error" ? "alert" : "status"}
     >
-      <Icon className={cn("mb-4 h-9 w-9 text-accent", kind === "loading" && "animate-spin")} aria-hidden="true" />
-      <h2 className="text-lg font-bold">{title}</h2>
+      <span className="mb-4 grid h-10 w-10 place-items-center rounded-lg bg-accent-soft text-accent">
+        <Icon className={cn("h-5 w-5", kind === "loading" && "animate-spin")} aria-hidden="true" />
+      </span>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
       <p className="mt-2 max-w-md text-sm leading-6 text-muted">{description}</p>
       {onRetry ? (
         <Button className="mt-5" variant="secondary" onClick={() => void onRetry()}>

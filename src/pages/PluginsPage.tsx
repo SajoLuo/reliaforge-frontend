@@ -1,7 +1,7 @@
 import { RefreshCw } from "lucide-react"
 import { PageHeader } from "@/components/common/PageHeader"
 import { StatePanel } from "@/components/common/StatePanel"
-import { PluginCard } from "@/components/plugins/PluginCard"
+import { PluginList } from "@/components/plugins/PluginList"
 import { Button } from "@/components/ui/button"
 import { usePlugins } from "@/hooks/usePlugins"
 import { useLocale } from "@/i18n/useLocale"
@@ -17,16 +17,14 @@ export function PluginsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         eyebrow={t("plugins.eyebrow", { count: data.plugins.length })}
         title={t("plugins.title")}
         description={t("plugins.description")}
         actions={<Button variant="secondary" disabled={loading} onClick={() => void refresh()}><RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("common.refresh")}</Button>}
       />
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {data.plugins.map((plugin) => <PluginCard key={plugin.id} plugin={plugin} />)}
-      </div>
+      <PluginList plugins={data.plugins} />
     </div>
   )
 }

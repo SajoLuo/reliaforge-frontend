@@ -6,16 +6,16 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const tones: Record<NonNullable<BadgeProps["tone"]>, string> = {
-  neutral: "bg-neutral-soft text-neutral-ink",
-  success: "bg-success-soft text-success-ink",
-  warning: "bg-warning-soft text-warning-ink",
-  danger: "bg-danger-soft text-danger-ink",
+  neutral: "border-line bg-neutral-soft text-neutral-ink",
+  success: "border-success-ink/10 bg-success-soft text-success-ink",
+  warning: "border-warning-ink/10 bg-warning-soft text-warning-ink",
+  danger: "border-danger-ink/10 bg-danger-soft text-danger-ink",
 }
 
 export function Badge({ tone = "neutral", className, ...props }: BadgeProps) {
   return (
     <span
-      className={cn("inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold", tones[tone], className)}
+      className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium leading-5", tones[tone], className)}
       {...props}
     />
   )

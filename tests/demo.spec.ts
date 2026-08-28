@@ -15,7 +15,7 @@ test("read-only demo explores the real console without API traffic or lifecycle 
   await page.goto("./#/")
   await expect(page).toHaveURL(/#\/$/)
   await expect(page.getByTestId("demo-notice")).toContainText("Read-only demo")
-  await expect(page.getByRole("heading", { name: "Small plugins. Clear boundaries." })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible()
   await expect(page.getByTestId("plugin-card")).toHaveCount(2)
 
   await page.getByRole("link", { name: "Plugins", exact: true }).click()
@@ -85,7 +85,7 @@ test.describe("deterministic locale URLs", () => {
     await expect(page).toHaveURL(/#\/$/)
     await expect(page.locator("html")).toHaveAttribute("lang", "en")
     await expect(page).toHaveTitle("ReliaForge · Overview")
-    await expect(page.getByRole("heading", { name: "Small plugins. Clear boundaries." })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible()
     expect(apiRequests).toEqual([])
   })
 })

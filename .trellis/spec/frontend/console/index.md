@@ -9,9 +9,11 @@ small and point to canonical source and tests instead of duplicating implementat
 2. For entrypoint, router, Vite mode, base path, or deployment work, read
    [Routing and build modes](routing-and-build-modes.md).
    This includes locale routes, language switches, and browser metadata.
-3. For any behavior change, read [Testing](testing.md) and identify the smallest regression test.
-4. Search for the existing symbol or contract before adding a new helper or mode.
-5. Keep browser configuration public and keep lifecycle authorization owned by API data.
+3. For layout, styling, presentation components, or responsive behavior, read
+   [Visual system](visual-system.md).
+4. For any behavior change, read [Testing](testing.md) and identify the smallest regression test.
+5. Search for the existing symbol or contract before adding a new helper or mode.
+6. Keep browser configuration public and keep lifecycle authorization owned by API data.
 
 ## Repository Shape
 

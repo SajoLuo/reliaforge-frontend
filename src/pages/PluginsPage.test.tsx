@@ -66,6 +66,7 @@ describe("PluginsPage", () => {
     expect(await screen.findByText("Demo")).toBeInTheDocument()
     expect(screen.getByText("Runbook Preview")).toBeInTheDocument()
     expect(screen.getByText("runbook.preview")).toBeInTheDocument()
+    expect(screen.getByTestId("plugin-list")).toHaveTextContent("Status")
     const links = screen.getAllByRole("link", { name: /^Inspect / })
     expect(links[0]).toHaveAttribute("href", "/plugins/demo")
     expect(links[1]).toHaveAttribute("href", "/plugins/runbook")

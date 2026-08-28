@@ -47,7 +47,7 @@ describe("LocaleProvider", () => {
 
     await user.click(screen.getByRole("button", { name: "中文" }))
     expect(screen.getByTestId("path")).toHaveTextContent("/zh/plugins/runbook?tab=contract")
-    expect(screen.getByText("插件小而专，边界清晰。")).toBeInTheDocument()
+    expect(screen.getByText("概览")).toBeInTheDocument()
     await waitFor(() => expect(document.documentElement.lang).toBe("zh-CN"))
 
     await user.click(screen.getByRole("button", { name: "English" }))
