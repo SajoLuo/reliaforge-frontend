@@ -4,29 +4,30 @@
 
 :root {
   color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --canvas: 244 247 246;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  --canvas: 250 251 250;
   --panel: 255 255 255;
-  --ink: 25 35 32;
-  --muted: 99 115 109;
-  --line: 216 225 221;
-  --accent: 25 118 91;
-  --accent-soft: 209 238 225;
+  --ink: 13 17 15;
+  --muted: 91 101 96;
+  --line: 225 230 227;
+  --accent: 0 126 80;
+  --accent-ink: 255 255 255;
+  --accent-soft: 222 249 237;
   --danger: 185 28 28;
-  --danger-soft: 254 226 226;
+  --danger-soft: 254 235 235;
   --danger-ink: 153 27 27;
-  --success-soft: 209 250 229;
-  --success-ink: 6 95 70;
-  --warning-soft: 254 243 199;
-  --warning-ink: 146 64 14;
-  --neutral-soft: 241 245 249;
-  --neutral-ink: 51 65 85;
-  --inverse: 2 6 23;
-  --inverse-ink: 255 255 255;
-  --inverse-muted: 148 163 184;
-  --inverse-accent: 52 211 153;
-  --code-ink: 209 250 229;
-  --shadow: 15 23 42;
+  --success-soft: 222 249 237;
+  --success-ink: 0 118 75;
+  --warning-soft: 250 248 239;
+  --warning-ink: 87 76 46;
+  --neutral-soft: 244 246 245;
+  --neutral-ink: 70 80 75;
+  --inverse: 11 17 14;
+  --inverse-ink: 247 249 248;
+  --inverse-muted: 156 166 161;
+  --code-ink: 214 246 230;
+  --shadow: 9 16 13;
 }
 
 * {
@@ -38,9 +39,9 @@ body {
   min-height: 100vh;
   margin: 0;
   color: rgb(var(--ink));
-  background:
-    radial-gradient(circle at 10% 0%, rgb(var(--accent-soft) / 0.72), transparent 32rem),
-    rgb(var(--canvas));
+  background: rgb(var(--canvas));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -49,8 +50,40 @@ a {
 }
 
 ::selection {
-  color: rgb(var(--inverse-ink));
+  color: rgb(var(--accent-ink));
   background: rgb(var(--accent));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --canvas: 9 12 11;
+    --panel: 14 18 16;
+    --ink: 242 245 243;
+    --muted: 153 163 158;
+    --line: 42 49 46;
+    --accent: 52 211 153;
+    --accent-ink: 5 46 31;
+    --accent-soft: 20 61 45;
+    --danger: 248 113 113;
+    --danger-soft: 70 29 31;
+    --danger-ink: 254 202 202;
+    --success-soft: 19 63 45;
+    --success-ink: 110 231 183;
+    --warning-soft: 45 40 27;
+    --warning-ink: 253 230 138;
+    --neutral-soft: 29 35 32;
+    --neutral-ink: 204 211 207;
+    --inverse: 5 8 7;
+    --inverse-ink: 247 249 248;
+    --inverse-muted: 145 155 150;
+    --code-ink: 167 243 208;
+    --shadow: 0 0 0;
+  }
+
+  .brand-mark {
+    filter: brightness(0) invert(1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -85,3 +85,14 @@ test("scanner rejects binary, non-UTF8, and secret-bearing unknown extensions", 
     { rule: "secret-literal", path: "settings.toml", line: 1 },
   ])
 })
+
+test("scanner allows only the canonical public brand asset", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "reliaforge-scan-"))
+  fs.mkdirSync(path.join(root, "public"))
+  fs.writeFileSync(path.join(root, "public", "reliaforge-mark.png"), Buffer.from([0x89, 0x50, 0x00, 0x47]))
+  fs.writeFileSync(path.join(root, "public", "other.png"), Buffer.from([0x89, 0x50, 0x00, 0x47]))
+
+  assert.deepEqual(scanTree(root), [
+    { rule: "binary-file", path: "public/other.png", line: 0 },
+  ])
+})

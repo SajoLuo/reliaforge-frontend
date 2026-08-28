@@ -20,6 +20,7 @@ const navigation = [
 ] as const
 
 const focusableSelector = "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])"
+const brandMarkPath = `${import.meta.env.BASE_URL}reliaforge-mark.png`
 
 function cycleDrawerFocus(event: KeyboardEvent<HTMLElement>, drawer: HTMLElement | null) {
   if (event.key !== "Tab") return
@@ -65,7 +66,7 @@ export function AppShell({ children, className }: AppShellProps) {
 
   useEffect(() => {
     const closeAtDesktopWidth = () => {
-      if (window.innerWidth < 1024 || !open) return
+      if (window.innerWidth < 768 || !open) return
       setOpen(false)
       if (resizeFocusFrameRef.current !== null) {
         window.cancelAnimationFrame(resizeFocusFrameRef.current)
@@ -101,7 +102,7 @@ export function AppShell({ children, className }: AppShellProps) {
   }
 
   return (
-    <div className={cn("min-h-screen lg:grid lg:grid-cols-[17rem_1fr]", className)}>
+    <div className={cn("min-h-screen md:grid md:grid-cols-[13rem_minmax(0,1fr)]", className)}>
       <aside
         ref={drawerRef}
         id="mobile-navigation"
@@ -109,25 +110,27 @@ export function AppShell({ children, className }: AppShellProps) {
         aria-modal={open ? true : undefined}
         aria-label={t("app.navigation")}
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[17rem] flex-col border-r bg-inverse px-4 py-5 text-inverse-ink lg:visible lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[16rem] flex-col border-r bg-panel px-3 py-4 text-ink transition-transform md:visible md:sticky md:top-0 md:h-screen md:w-auto md:translate-x-0",
           open ? "visible translate-x-0" : "invisible -translate-x-full",
         )}
         onKeyDown={handleDrawerKeyDown}
       >
-        <div className="flex items-center justify-between px-2">
-          <NavLink to={pathFor("/")} className="flex items-center gap-3" onClick={closeNavigation}>
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-inverse-accent font-black text-inverse">R</span>
-            <span>
-              <span className="block text-base font-bold">ReliaForge</span>
-              <span className="block text-xs text-inverse-muted">{t("app.workspace")}</span>
-            </span>
+        <div className="flex min-h-11 items-center justify-between px-2">
+          <NavLink to={pathFor("/")} className="flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onClick={closeNavigation}>
+            <img
+              src={brandMarkPath}
+              alt=""
+              className="brand-mark h-9 w-9 object-contain"
+              aria-hidden="true"
+            />
+            <span className="text-sm font-semibold tracking-tight">ReliaForge</span>
           </NavLink>
-          <Button ref={closeButtonRef} className="lg:hidden" variant="ghost" size="small" onClick={closeNavigation} aria-label={t("app.closeNavigation")} aria-controls="mobile-navigation" aria-expanded={open}>
+          <Button ref={closeButtonRef} className="md:hidden" variant="ghost" size="small" onClick={closeNavigation} aria-label={t("app.closeNavigation")} aria-controls="mobile-navigation" aria-expanded={open}>
             <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
-        <nav className="mt-9 space-y-1" aria-label={t("app.primaryNavigation")}>
+        <nav className="mt-7 space-y-1" aria-label={t("app.primaryNavigation")}>
           {navigation.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -136,8 +139,8 @@ export function AppShell({ children, className }: AppShellProps) {
               onClick={closeNavigation}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-inverse-muted transition-colors hover:bg-inverse-ink/10 hover:text-inverse-ink",
-                  isActive && "bg-inverse-accent text-inverse hover:bg-inverse-accent hover:text-inverse",
+                  "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-neutral-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+                  isActive && "bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent",
                 )
               }
             >
@@ -148,12 +151,12 @@ export function AppShell({ children, className }: AppShellProps) {
         </nav>
 
         <div className="mt-auto space-y-3">
-          <div className="rounded-xl border border-inverse-ink/10 bg-inverse-ink/5 p-3">
-            <p className="px-1 text-xs font-semibold text-inverse-muted">{t("app.language")}</p>
-            <div className="mt-2 grid grid-cols-2 gap-2" role="group" aria-label={t("app.language")}>
+          <div className="rounded-lg border bg-canvas p-2.5">
+            <p className="px-1 text-[11px] font-semibold text-muted">{t("app.language")}</p>
+            <div className="mt-2 grid grid-cols-2 gap-1" role="group" aria-label={t("app.language")}>
               <button
                 type="button"
-                className={cn("rounded-lg px-2 py-2 text-xs font-bold transition-colors", locale === "en" ? "bg-inverse-accent text-inverse" : "bg-inverse-ink/10 text-inverse-muted hover:text-inverse-ink")}
+                className={cn("min-h-8 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent", locale === "en" ? "bg-accent-soft text-accent" : "text-muted hover:bg-neutral-soft hover:text-ink")}
                 aria-label={t("app.switchToEnglish")}
                 aria-pressed={locale === "en"}
                 onClick={() => switchLocale("en")}
@@ -162,7 +165,7 @@ export function AppShell({ children, className }: AppShellProps) {
               </button>
               <button
                 type="button"
-                className={cn("rounded-lg px-2 py-2 text-xs font-bold transition-colors", locale === "zh" ? "bg-inverse-accent text-inverse" : "bg-inverse-ink/10 text-inverse-muted hover:text-inverse-ink")}
+                className={cn("min-h-8 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent", locale === "zh" ? "bg-accent-soft text-accent" : "text-muted hover:bg-neutral-soft hover:text-ink")}
                 aria-label={t("app.switchToChinese")}
                 aria-pressed={locale === "zh"}
                 onClick={() => switchLocale("zh")}
@@ -171,7 +174,7 @@ export function AppShell({ children, className }: AppShellProps) {
               </button>
             </div>
           </div>
-          <div className="rounded-xl border border-inverse-ink/10 bg-inverse-ink/5 p-4 text-xs leading-5 text-inverse-muted">
+          <div className="rounded-lg border bg-panel p-3 text-xs leading-5 text-muted">
             {t("app.summary")}
           </div>
         </div>
@@ -180,7 +183,7 @@ export function AppShell({ children, className }: AppShellProps) {
       <div ref={contentRef} className="min-w-0" data-testid="app-shell-content">
         <div className="sticky top-0 z-30">
           {isDemo ? <DemoNotice /> : null}
-          <header className="flex h-16 items-center border-b bg-canvas/90 px-4 backdrop-blur lg:hidden">
+          <header className="flex h-14 items-center border-b bg-panel/95 px-4 backdrop-blur md:hidden">
             <Button
               ref={openButtonRef}
               variant="secondary"
@@ -192,12 +195,18 @@ export function AppShell({ children, className }: AppShellProps) {
             >
               <Menu className="h-4 w-4" aria-hidden="true" />
             </Button>
-            <span className="ml-3 font-bold">ReliaForge</span>
+            <img
+              src={brandMarkPath}
+              alt=""
+              className="brand-mark ml-3 h-8 w-8 object-contain"
+              aria-hidden="true"
+            />
+            <span className="ml-2 font-bold">ReliaForge</span>
           </header>
         </div>
-        <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">{children}</main>
+        <main className="mx-auto w-full max-w-[76rem] px-4 py-8 sm:px-6 md:px-8 md:py-10 xl:px-12">{children}</main>
       </div>
-      {open ? <div className="fixed inset-0 z-30 bg-inverse/55 lg:hidden" role="presentation" onClick={closeNavigation} aria-hidden="true" /> : null}
+      {open ? <div className="fixed inset-0 z-30 bg-inverse/45 md:hidden" role="presentation" onClick={closeNavigation} aria-hidden="true" /> : null}
     </div>
   )
 }

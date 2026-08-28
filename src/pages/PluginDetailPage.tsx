@@ -69,8 +69,8 @@ function PluginDetailContent({
   const { pathFor, t } = useLocale()
   const presentation = pluginPresentation(data, t)
   return (
-    <div className="space-y-8">
-      <Link className="inline-flex items-center gap-2 text-sm font-bold text-muted hover:text-ink" to={pathFor("/plugins")}>
+    <div className="space-y-10">
+      <Link className="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" to={pathFor("/plugins")}>
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t("detail.back")}
       </Link>
       <PageHeader
@@ -99,11 +99,11 @@ function PluginDetailContent({
         }
       />
 
-      {actionError ? <p className="rounded-xl border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger-ink" role="alert">{actionError}</p> : null}
+      {actionError ? <p className="rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger-ink" role="alert">{actionError}</p> : null}
 
       <section className="grid gap-5 lg:grid-cols-[1fr_1fr]">
         <Card>
-          <CardHeader><h2 className="font-bold">{t("detail.runtime")}</h2></CardHeader>
+          <CardHeader><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-muted">{t("detail.runtime")}</h2></CardHeader>
           <CardContent className="space-y-4">
             <DetailRow label={t("detail.lifecycle")}><PluginStateBadge state={data.state} /></DetailRow>
             <DetailRow label={t("detail.health")}><Badge tone={healthTone(data.health.status)}>{t(`health.${data.health.status}`)}</Badge></DetailRow>
@@ -112,7 +112,7 @@ function PluginDetailContent({
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><h2 className="font-bold">{t("detail.contract")}</h2></CardHeader>
+          <CardHeader><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-muted">{t("detail.contract")}</h2></CardHeader>
           <CardContent className="space-y-5">
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted">{t("detail.capabilities")}</h3>
@@ -127,9 +127,9 @@ function PluginDetailContent({
       </section>
 
       <Card>
-        <CardHeader><h2 className="font-bold">{t("detail.settingsSchema")}</h2><p className="text-sm text-muted">{t("detail.settingsDescription")}</p></CardHeader>
+        <CardHeader><h2 className="text-sm font-semibold tracking-tight">{t("detail.settingsSchema")}</h2><p className="text-sm text-muted">{t("detail.settingsDescription")}</p></CardHeader>
         <CardContent>
-          <pre className="overflow-x-auto rounded-xl bg-inverse p-4 text-xs leading-6 text-code-ink">{JSON.stringify(data.settings_schema, null, 2)}</pre>
+          <pre className="max-w-full overflow-x-auto rounded-md border border-inverse-muted/20 bg-inverse p-4 font-mono text-xs leading-6 text-code-ink">{JSON.stringify(data.settings_schema, null, 2)}</pre>
         </CardContent>
       </Card>
     </div>
@@ -172,5 +172,5 @@ interface DetailRowProps {
 }
 
 function DetailRow({ label, children }: DetailRowProps) {
-  return <div className="flex items-center justify-between gap-4 border-b pb-3 last:border-b-0 last:pb-0"><span className="text-sm text-muted">{label}</span>{children}</div>
+  return <div className="flex items-center justify-between gap-4 border-b pb-3 last:border-b-0 last:pb-0"><span className="text-sm text-muted">{label}</span><span className="text-sm font-medium">{children}</span></div>
 }

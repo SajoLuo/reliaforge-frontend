@@ -46,8 +46,9 @@ describe("OverviewPage", () => {
     vi.mocked(listPlugins).mockResolvedValue({ plugins: [] })
     render(<MemoryRouter><OverviewPage /></MemoryRouter>)
 
-    expect(await screen.findByRole("heading", { name: "Small plugins. Clear boundaries." })).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Overview" })).toBeInTheDocument()
     expect(screen.getByRole("region", { name: "Platform summary" })).toHaveTextContent("healthy")
+    expect(screen.getByTestId("overview-summary")).toHaveTextContent("Needs attention")
     expect(screen.getByTestId("empty-state")).toHaveTextContent("No plugins discovered")
   })
 })
