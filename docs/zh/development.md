@@ -25,7 +25,7 @@
 
 插件标识符动态生成详情链接。首个版本有意不包含插件专属 React 包。
 
-普通构建使用 `BrowserRouter` 和 `/` Vite base。显式演示构建使用 `HashRouter` 和 `/reliaforge-frontend/`，因此 GitHub Pages 详情链接无需重定向垫片即可直接打开和刷新。构建模式只由 `src/config/buildMode.ts` 解释。
+普通构建使用 `BrowserRouter`，显式演示构建使用 `HashRouter`；两者都从各自域名根路径提供资源，因此 GitHub Pages 详情链接无需重定向垫片即可直接打开和刷新。构建模式只由 `src/config/buildMode.ts` 解释。
 
 ## 配置
 
@@ -39,7 +39,7 @@ npm run preview:demo
 npm run test:e2e:demo
 ```
 
-[在线演示](https://sajoluo.github.io/reliaforge-frontend/#/zh/)使用与普通构建相同的响应解析器和界面。其 fixture 只包含公开的 `demo` 和 `runbook` 示例，返回相互独立的值，不暴露生命周期操作，也不发出 API 请求。要在本地运行完整的后端托管生命周期，请参阅[项目快速开始](https://sajoluo.github.io/reliaforge/zh/guide/getting-started.html)。
+[在线演示](https://demo.reliaforge.dev/#/zh/)使用与普通构建相同的响应解析器和界面。其 fixture 只包含公开的 `demo` 和 `runbook` 示例，返回相互独立的值，不暴露生命周期操作，也不发出 API 请求。要在本地运行完整的后端托管生命周期，请参阅[项目快速开始](https://reliaforge.dev/zh/guide/getting-started.html)。
 
 ## 添加界面行为
 

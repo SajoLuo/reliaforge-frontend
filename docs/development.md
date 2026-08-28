@@ -33,9 +33,9 @@ shared English link.
 
 Plugin identifiers create detail links dynamically. Plugin-specific React bundles are intentionally outside the first release.
 
-Normal builds use `BrowserRouter` and the `/` Vite base. The explicit demo build uses `HashRouter`
-and `/reliaforge-frontend/`, so GitHub Pages detail links can be opened and reloaded without a
-redirect shim. Build-mode interpretation stays in `src/config/buildMode.ts`.
+Normal builds use `BrowserRouter`, while the explicit demo build uses `HashRouter`. Both serve from
+their origin root, so GitHub Pages detail links can be opened and reloaded without a redirect shim.
+Build-mode interpretation stays in `src/config/buildMode.ts`.
 
 ## Configuration
 
@@ -52,10 +52,10 @@ npm run preview:demo
 npm run test:e2e:demo
 ```
 
-The [online demo](https://sajoluo.github.io/reliaforge-frontend/) uses the same response parsers and
+The [online demo](https://demo.reliaforge.dev/) uses the same response parsers and
 UI as a normal build. Its fixtures contain only the public `demo` and `runbook` examples, return
 independent values, expose no lifecycle actions, and perform no API request. See the
-[project quick start](https://sajoluo.github.io/reliaforge/guide/getting-started.html) to run the complete
+[project quick start](https://reliaforge.dev/guide/getting-started.html) to run the complete
 backend-managed lifecycle locally.
 
 ## Adding UI behavior

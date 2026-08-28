@@ -2,8 +2,8 @@ import path from "node:path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vitest/config"
 
-export default defineConfig(({ mode }) => ({
-  base: mode === "demo" ? "/reliaforge-frontend/" : "/",
+export default defineConfig({
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {
@@ -28,4 +28,4 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-}))
+})
