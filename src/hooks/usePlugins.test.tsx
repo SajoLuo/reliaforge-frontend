@@ -1,7 +1,10 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
+import type { ReactNode } from "react"
+import { MemoryRouter, useNavigate } from "react-router-dom"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { getPlugin, runPluginAction } from "@/api/plugins"
 import { usePlugin } from "@/hooks/usePlugins"
+import { LocaleProvider } from "@/i18n/LocaleProvider"
 import type { PluginView } from "@/types/plugin"
 
 vi.mock("@/api/plugins", () => ({
@@ -14,14 +17,25 @@ vi.mock("@/api/plugins", () => ({
 interface Deferred<T> {
   promise: Promise<T>
   resolve: (value: T) => void
+  reject: (reason: unknown) => void
 }
 
 function deferred<T>(): Deferred<T> {
   let resolve!: (value: T) => void
-  const promise = new Promise<T>((fulfill) => {
+  let reject!: (reason: unknown) => void
+  const promise = new Promise<T>((fulfill, fail) => {
     resolve = fulfill
+    reject = fail
   })
-  return { promise, resolve }
+  return { promise, resolve, reject }
+}
+
+function EnglishWrapper({ children }: { children: ReactNode }) {
+  return (
+    <MemoryRouter initialEntries={["/"]}>
+      <LocaleProvider>{children}</LocaleProvider>
+    </MemoryRouter>
+  )
 }
 
 function plugin(id: string): PluginView {
@@ -116,6 +130,26 @@ describe("usePlugin", () => {
 
     action.resolve(plugin("a"))
     await act(async () => first)
+  })
+
+  it("relocalizes a stored action error after the URL locale changes", async () => {
+    vi.mocked(getPlugin).mockResolvedValue(plugin("a"))
+    vi.mocked(runPluginAction).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 403, data: {} },
+    })
+    const { result } = renderHook(() => ({
+      pluginState: usePlugin("a"),
+      navigate: useNavigate(),
+    }), { wrapper: EnglishWrapper })
+    await waitFor(() => expect(result.current.pluginState.data?.id).toBe("a"))
+
+    await act(async () => result.current.pluginState.performAction("stop"))
+    expect(result.current.pluginState.actionError).toBe("You do not have permission to perform this action.")
+
+    act(() => result.current.navigate("/zh/"))
+    await waitFor(() => expect(result.current.pluginState.actionError).toBe("你没有执行此操作的权限。"))
+    expect(runPluginAction).toHaveBeenCalledOnce()
   })
 
   it("does not restore an abandoned pending action after navigating back", async () => {

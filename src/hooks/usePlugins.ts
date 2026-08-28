@@ -25,7 +25,11 @@ export interface UsePluginReturn extends AsyncResource<PluginView> {
 interface ActionState {
   routeIdentity: PluginLoader
   pending: PluginAction | null
-  error: string | null
+  error: ActionFailure | null
+}
+
+interface ActionFailure {
+  cause: unknown
 }
 
 type PluginLoader = (signal: AbortSignal) => Promise<PluginView>
@@ -93,7 +97,7 @@ export function usePlugin(pluginId: string): UsePluginReturn {
           setActionState({
             routeIdentity: loader,
             pending: action,
-            error: apiErrorMessage(requestError, t("action.failed")),
+            error: { cause: requestError },
           })
         }
         return null
@@ -108,10 +112,15 @@ export function usePlugin(pluginId: string): UsePluginReturn {
         }
       }
     },
-    [loader, pluginId, replaceResource, t],
+    [loader, pluginId, replaceResource],
   )
 
   const actionPending = actionState.routeIdentity === loader ? actionState.pending : null
-  const actionError = actionState.routeIdentity === loader ? actionState.error : null
+  const actionError = actionState.routeIdentity === loader && actionState.error
+    ? apiErrorMessage(actionState.error.cause, t("action.failed"), {
+        authenticationRequired: t("error.authenticationRequired"),
+        permissionDenied: t("error.permissionDenied"),
+      })
+    : null
   return { ...resource, refresh, actionPending, actionError, performAction }
 }

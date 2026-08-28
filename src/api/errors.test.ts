@@ -19,4 +19,13 @@ describe("apiErrorMessage", () => {
     expect(apiErrorMessage(axiosError(undefined, 401), "Fallback")).toBe("Authentication is required.")
     expect(apiErrorMessage(axiosError(undefined, 403), "Fallback")).toBe("You do not have permission to perform this action.")
   })
+
+  it("uses caller-supplied authorization messages", () => {
+    const messages = {
+      authenticationRequired: "需要先登录。",
+      permissionDenied: "你没有执行此操作的权限。",
+    }
+    expect(apiErrorMessage(axiosError(undefined, 401), "Fallback", messages)).toBe("需要先登录。")
+    expect(apiErrorMessage(axiosError(undefined, 403), "Fallback", messages)).toBe("你没有执行此操作的权限。")
+  })
 })

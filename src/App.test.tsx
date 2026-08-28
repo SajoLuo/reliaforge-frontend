@@ -10,7 +10,7 @@ describe("App", () => {
   it("routes to the neutral project overview", () => {
     render(<MemoryRouter initialEntries={["/about"]}><App /></MemoryRouter>)
     expect(screen.getByRole("heading", { name: "About ReliaForge" })).toBeInTheDocument()
-    expect(screen.getByText("Manifest first")).toBeInTheDocument()
+    expect(screen.getByText("Describe each plugin")).toBeInTheDocument()
     expect(screen.getByText("Sajo Luo", { exact: false })).toBeInTheDocument()
   })
 
@@ -21,7 +21,7 @@ describe("App", () => {
       </MemoryRouter>,
     )
     expect(screen.getByRole("heading", { name: "关于 ReliaForge" })).toBeInTheDocument()
-    expect(screen.getByText("清单优先")).toBeInTheDocument()
+    expect(screen.getByText("说明每个插件")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "插件" })).toHaveAttribute("href", "/zh/plugins")
   })
 })

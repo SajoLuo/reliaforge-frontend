@@ -15,6 +15,7 @@
   --accent-ink: 255 255 255;
   --accent-soft: 222 249 237;
   --danger: 185 28 28;
+  --danger-button-ink: 255 255 255;
   --danger-soft: 254 235 235;
   --danger-ink: 153 27 27;
   --success-soft: 222 249 237;
@@ -66,6 +67,7 @@ a {
     --accent-ink: 5 46 31;
     --accent-soft: 20 61 45;
     --danger: 248 113 113;
+    --danger-button-ink: 69 10 10;
     --danger-soft: 70 29 31;
     --danger-ink: 254 202 202;
     --success-soft: 19 63 45;

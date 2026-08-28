@@ -26,6 +26,14 @@ that browser language never redirects an English link. Fixture presentation test
 translation does not mutate the parsed contract object or rewrite arbitrary backend-provided
 presentation fields.
 
+## Public Copy
+
+Write UI copy and repository documentation for an SRE using the current release. Lead with the
+state or next action, use plain operational language, and explain project-specific terms on first
+use. Omit design history, rejected alternatives, internal predecessors, and irrelevant
+compatibility claims. Keep English and Chinese behavior equivalent, including client-generated
+errors; backend-provided detail remains unchanged.
+
 ## CI and Deployment
 
 The Pages artifact is produced only after the complete unit/build gate and both normal and demo

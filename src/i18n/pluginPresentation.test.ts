@@ -24,7 +24,7 @@ describe("pluginPresentation", () => {
 
     expect(localized).toEqual({
       name: "运行手册预览",
-      description: "根据类型化插件能力生成确定性的只读运行手册预览。",
+      description: "使用 demo 插件提供的问候服务生成只读 Runbook 预览。",
       category: "示例",
     })
     expect(runbook).toMatchObject({

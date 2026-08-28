@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { apiErrorMessage } from "@/api/errors"
+import { useLocale } from "@/i18n/useLocale"
 
 const DEFAULT_RESOURCE_KEY = ""
 type ResourceKey = string
@@ -23,6 +24,7 @@ export function useAsyncResource<T>(
   loader: (signal: AbortSignal) => Promise<T>,
   resourceKey: ResourceKey = DEFAULT_RESOURCE_KEY,
 ): AsyncResource<T> {
+  const { t } = useLocale()
   const [state, setState] = useState<ResourceState<T>>({
     key: resourceKey,
     data: null,
@@ -31,6 +33,7 @@ export function useAsyncResource<T>(
   })
   const loaderRef = useRef(loader)
   const resourceKeyRef = useRef<ResourceKey>(resourceKey)
+  const translatorRef = useRef(t)
   const activeController = useRef<AbortController | null>(null)
   const mounted = useRef(false)
   const requestGeneration = useRef(0)
@@ -38,7 +41,8 @@ export function useAsyncResource<T>(
   useLayoutEffect(() => {
     loaderRef.current = loader
     resourceKeyRef.current = resourceKey
-  }, [loader, resourceKey])
+    translatorRef.current = t
+  }, [loader, resourceKey, t])
 
   const isCurrentRequest = useCallback((
     controller: AbortController,
@@ -73,10 +77,14 @@ export function useAsyncResource<T>(
       }
     } catch (requestError) {
       if (isCurrentRequest(controller, generation, requestKey)) {
+        const translate = translatorRef.current
         setState((previous) => ({
           key: requestKey,
           data: previous.key === requestKey ? previous.data : null,
-          error: apiErrorMessage(requestError, "The request could not be completed."),
+          error: apiErrorMessage(requestError, translate("common.requestFailed"), {
+            authenticationRequired: translate("error.authenticationRequired"),
+            permissionDenied: translate("error.permissionDenied"),
+          }),
           loading: false,
         }))
       }

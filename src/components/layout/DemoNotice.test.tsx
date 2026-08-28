@@ -8,7 +8,7 @@ describe("DemoNotice", () => {
   it("labels the static deployment and links to the full local experience", () => {
     render(<DemoNotice />)
     expect(screen.getByLabelText("Read-only demo")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: /Run it locally/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Run locally/ })).toHaveAttribute(
       "href",
       "https://reliaforge.dev/guide/getting-started.html",
     )
