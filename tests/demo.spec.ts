@@ -60,7 +60,7 @@ test("demo switches to a direct Chinese detail route without translating contrac
   )
   await expect(page.getByRole("link", { name: "在本地运行以体验生命周期操作" })).toHaveAttribute(
     "href",
-    "https://sajoluo.github.io/reliaforge/zh/guide/getting-started.html",
+    "https://reliaforge.dev/zh/guide/getting-started.html",
   )
   await page.reload()
   await expect(page).toHaveURL(/#\/zh\/plugins\/runbook\?tab=contract$/)

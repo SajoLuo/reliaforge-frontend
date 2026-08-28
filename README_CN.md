@@ -7,8 +7,8 @@ ReliaForge 是一个面向具备生命周期管理能力的运维插件的轻量
 Python 插件运行时和管理 API 位于
 [`reliaforge-backend`](https://github.com/SajoLuo/reliaforge-backend)。
 
-- [项目站点与中文文档](https://sajoluo.github.io/reliaforge/zh/)
-- [只读在线演示](https://sajoluo.github.io/reliaforge-frontend/#/zh/)
+- [项目站点与中文文档](https://reliaforge.dev/zh/)
+- [只读在线演示](https://demo.reliaforge.dev/#/zh/)
 
 ## 界面展示内容
 
@@ -36,7 +36,7 @@ npm run dev
 
 打开 `http://127.0.0.1:5530`。示例配置连接到 `http://127.0.0.1:8000` 的后端。
 
-浏览器不保存 API 密钥，也不发送跨域凭据。生产反向代理只在服务端注入身份；后端同时验证直接对端网络与共享密钥，在信任边界不完整时默认拒绝管理请求。未设置 `VITE_RELIAFORGE_API_URL` 时，客户端使用同源 `/api/v1`，因此部署不会继承仅用于开发的 localhost 端点。普通部署假定 Web 外壳位于站点根路径；独立静态演示构建显式使用 GitHub Pages 的 `/reliaforge-frontend/` 路径，不改变生产部署契约。
+浏览器不保存 API 密钥，也不发送跨域凭据。生产反向代理只在服务端注入身份；后端同时验证直接对端网络与共享密钥，在信任边界不完整时默认拒绝管理请求。未设置 `VITE_RELIAFORGE_API_URL` 时，客户端使用同源 `/api/v1`，因此部署不会继承仅用于开发的 localhost 端点。普通部署和独立静态演示都从各自域名的根路径提供 Web 外壳；演示仍通过显式构建模式选择 Hash 路由和静态数据，不改变正常生产契约。
 
 ## 在线演示
 
@@ -51,7 +51,7 @@ npm run build:demo
 npm run preview:demo
 ```
 
-完整生命周期体验请参阅[本地快速开始](https://sajoluo.github.io/reliaforge/zh/guide/getting-started.html)。
+完整生命周期体验请参阅[本地快速开始](https://reliaforge.dev/zh/guide/getting-started.html)。
 
 ## 验证
 

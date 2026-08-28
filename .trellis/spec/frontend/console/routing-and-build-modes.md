@@ -12,7 +12,7 @@ components but intentionally differ at the router, asset-base, and data-adapter 
 
 ```text
 npm run build        # base=/, BrowserRouter, HTTP adapter
-npm run build:demo   # base=/reliaforge-frontend/, HashRouter, static demo adapter
+npm run build:demo   # base=/, HashRouter, static demo adapter
 npm run test:e2e
 npm run test:e2e:demo
 ```
@@ -25,7 +25,7 @@ npm run test:e2e:demo
 | Build | Vite base | Router | Data source |
 | --- | --- | --- | --- |
 | normal | `/` | `BrowserRouter` | HTTP adapter |
-| demo | `/reliaforge-frontend/` | `HashRouter` | static demo adapter |
+| demo | `/` | `HashRouter` | static demo adapter |
 
 - Only the exact `demo` mode selects demo behavior. Development, test, and production use the
   normal contract.

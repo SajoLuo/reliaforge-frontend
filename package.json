@@ -5,7 +5,7 @@
   "description": "The ReliaForge web control plane for lifecycle-managed operations plugins.",
   "license": "MIT",
   "author": "Sajo Luo",
-  "homepage": "https://sajoluo.github.io/reliaforge/",
+  "homepage": "https://reliaforge.dev/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SajoLuo/reliaforge-frontend.git"

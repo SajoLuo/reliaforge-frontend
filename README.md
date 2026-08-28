@@ -7,8 +7,8 @@ ReliaForge is a lightweight workspace for lifecycle-managed operations plugins. 
 The Python plugin runtime and management API live in
 [`reliaforge-backend`](https://github.com/SajoLuo/reliaforge-backend).
 
-- [Project site and documentation](https://sajoluo.github.io/reliaforge/)
-- [Read-only online demo](https://sajoluo.github.io/reliaforge-frontend/)
+- [Project site and documentation](https://reliaforge.dev/)
+- [Read-only online demo](https://demo.reliaforge.dev/)
 
 ## What the interface shows
 
@@ -43,9 +43,9 @@ proxy injects identity only on the server side; the backend verifies both its di
 and shared secret and fails management requests closed when that trust boundary is incomplete.
 When `VITE_RELIAFORGE_API_URL` is unset, the client uses the same-origin `/api/v1` path so a
 deployment does not inherit a development-only localhost endpoint.
-Normal deployments assume the web shell is served from the origin root. The separate static demo
-build is explicitly configured for the `/reliaforge-frontend/` GitHub Pages path and does not change
-that production contract.
+Normal deployments and the separate static demo both serve the web shell from their origin root.
+The demo still uses its explicit build mode for hash routing and static data, without changing the
+normal production contract.
 
 ## Online demo
 
@@ -66,7 +66,7 @@ npm run preview:demo
 ```
 
 The complete lifecycle experience is covered by the
-[local quick start](https://sajoluo.github.io/reliaforge/guide/getting-started.html).
+[local quick start](https://reliaforge.dev/guide/getting-started.html).
 
 ## Verification
 
