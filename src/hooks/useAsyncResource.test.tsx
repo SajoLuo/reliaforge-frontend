@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
-import { MemoryRouter } from "react-router-dom"
+import { MemoryRouter, useNavigate } from "react-router-dom"
 import { describe, expect, it, vi } from "vitest"
 import { useAsyncResource } from "@/hooks/useAsyncResource"
 import { LocaleProvider } from "@/i18n/LocaleProvider"
@@ -24,6 +24,14 @@ function deferred<T>(): Deferred<T> {
 function ChineseWrapper({ children }: { children: ReactNode }) {
   return (
     <MemoryRouter initialEntries={["/zh/"]}>
+      <LocaleProvider>{children}</LocaleProvider>
+    </MemoryRouter>
+  )
+}
+
+function EnglishWrapper({ children }: { children: ReactNode }) {
+  return (
+    <MemoryRouter initialEntries={["/"]}>
       <LocaleProvider>{children}</LocaleProvider>
     </MemoryRouter>
   )
@@ -172,6 +180,24 @@ describe("useAsyncResource", () => {
     const { result } = renderHook(() => useAsyncResource(loader), { wrapper: ChineseWrapper })
 
     await waitFor(() => expect(result.current.error).toBe("需要先登录。"))
+  })
+
+  it("uses the current locale without refetching when the URL locale changes", async () => {
+    const request = deferred<string>()
+    const loader = vi.fn().mockReturnValue(request.promise)
+    const { result } = renderHook(() => ({
+      resource: useAsyncResource(loader),
+      navigate: useNavigate(),
+    }), { wrapper: EnglishWrapper })
+    await waitFor(() => expect(loader).toHaveBeenCalledOnce())
+
+    act(() => result.current.navigate("/zh/"))
+    await waitFor(() => expect(document.documentElement).toHaveAttribute("lang", "zh-CN"))
+    expect(loader).toHaveBeenCalledOnce()
+
+    request.reject({ isAxiosError: true, response: { status: 401, data: {} } })
+    await act(async () => request.promise.catch(() => undefined))
+    expect(result.current.resource.error).toBe("需要先登录。")
   })
 
   it("retries after a failed request", async () => {
