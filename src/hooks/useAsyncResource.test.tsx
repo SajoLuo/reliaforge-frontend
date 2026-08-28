@@ -1,6 +1,9 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
+import type { ReactNode } from "react"
+import { MemoryRouter } from "react-router-dom"
 import { describe, expect, it, vi } from "vitest"
 import { useAsyncResource } from "@/hooks/useAsyncResource"
+import { LocaleProvider } from "@/i18n/LocaleProvider"
 
 interface Deferred<T> {
   promise: Promise<T>
@@ -16,6 +19,14 @@ function deferred<T>(): Deferred<T> {
     reject = fail
   })
   return { promise, resolve, reject }
+}
+
+function ChineseWrapper({ children }: { children: ReactNode }) {
+  return (
+    <MemoryRouter initialEntries={["/zh/"]}>
+      <LocaleProvider>{children}</LocaleProvider>
+    </MemoryRouter>
+  )
 }
 
 describe("useAsyncResource", () => {
@@ -151,6 +162,16 @@ describe("useAsyncResource", () => {
     const { result } = renderHook(() => useAsyncResource(loader))
     await waitFor(() => expect(result.current.error).toBe("Catalog is unavailable."))
     expect(result.current.loading).toBe(false)
+  })
+
+  it("localizes client-generated authorization errors", async () => {
+    const loader = vi.fn().mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 401, data: {} },
+    })
+    const { result } = renderHook(() => useAsyncResource(loader), { wrapper: ChineseWrapper })
+
+    await waitFor(() => expect(result.current.error).toBe("需要先登录。"))
   })
 
   it("retries after a failed request", async () => {

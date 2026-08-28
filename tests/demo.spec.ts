@@ -56,9 +56,9 @@ test("demo switches to a direct Chinese detail route without translating contrac
   await expect(page).toHaveTitle("ReliaForge · 插件详情")
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     "content",
-    "ReliaForge 插件运维工作台",
+    "查看和管理 ReliaForge 运维插件",
   )
-  await expect(page.getByRole("link", { name: "在本地运行以体验生命周期操作" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "在本地运行并启停插件" })).toHaveAttribute(
     "href",
     "https://reliaforge.dev/zh/guide/getting-started.html",
   )

@@ -2,31 +2,16 @@
 
 [English](README.md)
 
-ReliaForge 是一个面向具备生命周期管理能力的运维插件的轻量工作台。本仓库包含中立的 React 管理界面。它通过后端 API 发现插件，不附带内置业务模块目录。
+ReliaForge 前端是 [ReliaForge 后端](https://github.com/SajoLuo/reliaforge-backend)的 React
+控制台。它显示后端状态、插件健康情况、依赖和配置项，以及后端当前允许执行的启动、停止或
+重启操作。
 
-Python 插件运行时和管理 API 位于
-[`reliaforge-backend`](https://github.com/SajoLuo/reliaforge-backend)。
-
-- [项目站点与中文文档](https://reliaforge.dev/zh/)
+- [项目文档](https://reliaforge.dev/zh/)
 - [只读在线演示](https://demo.reliaforge.dev/#/zh/)
 
-## 界面展示内容
+## 本地运行
 
-- 平台状态和版本；
-- 已发现插件及其生命周期状态；
-- 清单中的能力与依赖、由 Python 派生的 Settings Schema，以及健康状态；
-- 后端授权的启动、停止和重启操作；
-- 项目原则和插件开发入口。
-
-后端清单是插件身份、依赖、能力和分类元数据的事实来源；后端根据各插件的 Python Settings 类生成 Settings Schema。新增后端插件不需要新增前端路由：详情 URL 始终为 `/plugins/{plugin_id}`。
-
-## 环境要求
-
-- Node.js 20 或更高版本；
-- npm 10 或更高版本；
-- 如需实时数据，需要运行中的 ReliaForge 后端。
-
-## 本地开发
+需要 Node.js 20 或更高版本、npm 10 或更高版本。如需实时数据，还要先运行 ReliaForge 后端。
 
 ```bash
 cp .env.example .env
@@ -34,24 +19,37 @@ npm ci
 npm run dev
 ```
 
-打开 `http://127.0.0.1:5530`。示例配置连接到 `http://127.0.0.1:8000` 的后端。
+打开 `http://127.0.0.1:5530`。示例会连接到 `http://127.0.0.1:8000` 的后端。
 
-浏览器不保存 API 密钥，也不发送跨域凭据。生产反向代理只在服务端注入身份；后端同时验证直接对端网络与共享密钥，在信任边界不完整时默认拒绝管理请求。未设置 `VITE_RELIAFORGE_API_URL` 时，客户端使用同源 `/api/v1`，因此部署不会继承仅用于开发的 localhost 端点。普通部署和独立静态演示都从各自域名的根路径提供 Web 外壳；演示仍通过显式构建模式选择 Hash 路由和静态数据，不改变正常生产契约。
+`VITE_RELIAFORGE_API_URL` 用于设置后端来源。没有设置时，控制台使用同源 `/api/v1`。
+不要把 API 密钥或共享密钥放入 `VITE_*` 变量，因为浏览器构建文件都是公开的。
 
 ## 在线演示
 
-公开演示使用生产页面、Hooks、类型和响应解析器，并在 API 边界选择静态数据适配器。它展示中立的 `demo` 和 `runbook` 插件，但两者的 `available_actions` 都为空。演示不会发送管理 API 请求，也不会模拟启动、停止、重启、持久化或托管后端。
+[在线演示](https://demo.reliaforge.dev/#/zh/)使用与正常构建相同的页面和响应校验，但读取
+`demo` 和 `runbook` 插件的静态数据。它没有后端，不发送管理请求，也不显示启动、停止或
+重启按钮。
 
-英文使用无前缀路由，简体中文使用 `#/zh/`。可见的语言切换器只改变 URL 的语言前缀，并保留当前页面和查询字符串。URL 是唯一持久化的语言状态，因此浏览器语言不会重定向共享的英文 URL。
-
-在本地构建并预览 Pages 产物：
+在本地构建和预览演示：
 
 ```bash
 npm run build:demo
 npm run preview:demo
 ```
 
-完整生命周期体验请参阅[本地快速开始](https://reliaforge.dev/zh/guide/getting-started.html)。
+英文路由没有语言前缀，演示中的简体中文路由使用 `#/zh/`。切换语言时会保留当前页面和
+查询参数。
+
+## API 接口
+
+控制台使用：
+
+- `GET /api/v1/status`
+- `GET /api/v1/plugins`
+- `GET /api/v1/plugins/{plugin_id}`
+- `POST /api/v1/plugins/{plugin_id}/{start|stop|restart}`
+
+每个插件响应都包含 `available_actions`。控制台只展示这些操作，后端会认证并校验每次请求。
 
 ## 验证
 
@@ -66,7 +64,7 @@ npm run check:hygiene
 npm audit --audit-level=high
 ```
 
-可选浏览器冒烟测试需要安装本地 Playwright 浏览器：
+浏览器测试需要 Playwright Chromium：
 
 ```bash
 npx playwright install chromium
@@ -74,31 +72,15 @@ npm run test:e2e
 npm run test:e2e:demo
 ```
 
-跨仓库冒烟测试需要先启动后端，并将前端源站加入 CORS 列表，然后运行：
+检查运行中的后端是否符合前端契约：
 
 ```bash
 RELIAFORGE_OPENAPI_URL=http://127.0.0.1:8000/api/v1/openapi.json npm run check:contract
 RELIAFORGE_E2E_LIVE=1 RELIAFORGE_E2E_API_URL=http://127.0.0.1:8000 npm run test:e2e
 ```
 
-## API 契约
-
-界面使用以下版本化端点：
-
-- `GET /api/v1/status`
-- `GET /api/v1/plugins`
-- `GET /api/v1/plugins/{plugin_id}`
-- `POST /api/v1/plugins/{plugin_id}/{start|stop|restart}`
-
-每个插件响应都包含 `available_actions`；界面只渲染后端授权的控制项，绝不根据状态自行推断生命周期转换。重启操作会停止、重新初始化并启动已经加载的插件，并不表示后端会从磁盘重新加载 Python 源码或清单。
-
-GitHub Actions 在 Node.js 20 和 24 上重复执行质量门禁，然后运行普通界面和只读演示的 Chromium 浏览器测试。只有 `main` 构建通过所有任务后才部署到 GitHub Pages。全局覆盖率门槛为语句、函数和行 80%，分支 75%；当前覆盖率可以高于门槛，但后续变更不得降低门槛。
-
-参阅[前端开发](docs/zh/development.md)了解前端结构，参阅[插件契约](docs/zh/plugin-contract.md)了解界面渲染的字段。
-
-## 安全与社区
-
-提交问题或变更前，请阅读 [Changelog](CHANGELOG.md)、[Security](SECURITY.md)、[Contributing](CONTRIBUTING.md) 和 [Code of Conduct](CODE_OF_CONDUCT.md)。这些规范性文件保持英文单一事实来源。
+源码结构见[前端开发](docs/zh/development.md)，控制台展示的字段见
+[插件数据](docs/zh/plugin-contract.md)。
 
 ## 许可证
 

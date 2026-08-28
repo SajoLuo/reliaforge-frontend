@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { apiErrorMessage } from "@/api/errors"
+import { useLocale } from "@/i18n/useLocale"
 
 const DEFAULT_RESOURCE_KEY = ""
 type ResourceKey = string
@@ -23,6 +24,7 @@ export function useAsyncResource<T>(
   loader: (signal: AbortSignal) => Promise<T>,
   resourceKey: ResourceKey = DEFAULT_RESOURCE_KEY,
 ): AsyncResource<T> {
+  const { t } = useLocale()
   const [state, setState] = useState<ResourceState<T>>({
     key: resourceKey,
     data: null,
@@ -76,14 +78,17 @@ export function useAsyncResource<T>(
         setState((previous) => ({
           key: requestKey,
           data: previous.key === requestKey ? previous.data : null,
-          error: apiErrorMessage(requestError, "The request could not be completed."),
+          error: apiErrorMessage(requestError, t("common.requestFailed"), {
+            authenticationRequired: t("error.authenticationRequired"),
+            permissionDenied: t("error.permissionDenied"),
+          }),
           loading: false,
         }))
       }
     } finally {
       if (activeController.current === controller) activeController.current = null
     }
-  }, [isCurrentRequest])
+  }, [isCurrentRequest, t])
 
   const replace = useCallback((data: T) => {
     const requestKey = resourceKeyRef.current

@@ -10,7 +10,7 @@ const buttonVariants = cva(
         primary: "bg-accent px-4 py-2.5 text-accent-ink hover:brightness-95",
         secondary: "border-line bg-panel px-4 py-2.5 text-ink hover:bg-neutral-soft",
         ghost: "px-3 py-2 text-muted hover:bg-neutral-soft hover:text-ink",
-        danger: "bg-danger px-4 py-2.5 text-inverse-ink hover:brightness-90",
+        danger: "bg-danger px-4 py-2.5 text-danger-button-ink hover:brightness-90",
       },
       size: {
         default: "h-10",

@@ -1,34 +1,18 @@
-# ReliaForge Frontend
+# ReliaForge frontend
 
 [简体中文](README_CN.md)
 
-ReliaForge is a lightweight workspace for lifecycle-managed operations plugins. This repository contains the neutral React management interface. It discovers plugins through the backend API and does not ship a built-in business module catalog.
+The ReliaForge frontend is a React console for the
+[ReliaForge backend](https://github.com/SajoLuo/reliaforge-backend). It shows backend status, plugin
+health, dependencies, configuration fields, and the start, stop, or restart actions currently
+allowed by the backend.
 
-The Python plugin runtime and management API live in
-[`reliaforge-backend`](https://github.com/SajoLuo/reliaforge-backend).
-
-- [Project site and documentation](https://reliaforge.dev/)
+- [Project documentation](https://reliaforge.dev/)
 - [Read-only online demo](https://demo.reliaforge.dev/)
 
-## What the interface shows
+## Run locally
 
-- platform status and version;
-- discovered plugins and lifecycle state;
-- manifest capabilities/dependencies, Python-derived settings schema, and health;
-- authorized start, stop, and restart controls;
-- project principles and plugin development entry points.
-
-The backend manifest is the source of plugin identity, dependency, capability, and category metadata;
-the backend derives settings schema from each plugin's Python Settings class. Adding a backend plugin
-does not require adding a frontend route: detail URLs are always `/plugins/{plugin_id}`.
-
-## Requirements
-
-- Node.js 20 or newer;
-- npm 10 or newer;
-- a running ReliaForge backend for live data.
-
-## Local development
+You need Node.js 20 or newer, npm 10 or newer, and a running ReliaForge backend for live data.
 
 ```bash
 cp .env.example .env
@@ -36,37 +20,40 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:5530`. The example configuration connects to the backend at `http://127.0.0.1:8000`.
+Open `http://127.0.0.1:5530`. The example connects to the backend at
+`http://127.0.0.1:8000`.
 
-The browser stores no API secret and does not send cross-origin credentials. A production reverse
-proxy injects identity only on the server side; the backend verifies both its direct-peer network
-and shared secret and fails management requests closed when that trust boundary is incomplete.
-When `VITE_RELIAFORGE_API_URL` is unset, the client uses the same-origin `/api/v1` path so a
-deployment does not inherit a development-only localhost endpoint.
-Normal deployments and the separate static demo both serve the web shell from their origin root.
-The demo still uses its explicit build mode for hash routing and static data, without changing the
-normal production contract.
+`VITE_RELIAFORGE_API_URL` sets the backend origin. If it is absent, the console uses same-origin
+`/api/v1`. Never put an API key or shared secret in a `VITE_*` variable because browser build files
+are public.
 
 ## Online demo
 
-The public demo uses the production pages, hooks, types, and response parsers with a static data
-adapter. It shows the neutral `demo` and `runbook` plugins, but both expose an empty
-`available_actions` array. The demo sends no management API request and does not simulate start,
-stop, restart, persistence, or a hosted backend.
+The [online demo](https://demo.reliaforge.dev/) uses the same pages and response validation as a
+normal build, but reads saved data for the `demo` and `runbook` plugins. It has no backend, sends no
+management requests, and shows no start, stop, or restart buttons.
 
-English routes are unprefixed and Simplified Chinese routes use `#/zh/`. The visible language
-switch keeps the current page and query string by changing only the URL locale prefix. The URL is
-the sole persisted locale state, so browser language cannot redirect a shared English URL.
-
-Build and preview the Pages artifact locally:
+Build and preview the demo locally:
 
 ```bash
 npm run build:demo
 npm run preview:demo
 ```
 
-The complete lifecycle experience is covered by the
-[local quick start](https://reliaforge.dev/guide/getting-started.html).
+English routes have no language prefix. Simplified Chinese routes use `#/zh/` in the demo. The
+language switch keeps the current page and query string.
+
+## API endpoints
+
+The console uses:
+
+- `GET /api/v1/status`
+- `GET /api/v1/plugins`
+- `GET /api/v1/plugins/{plugin_id}`
+- `POST /api/v1/plugins/{plugin_id}/{start|stop|restart}`
+
+Each plugin response includes `available_actions`. The console displays only those actions, and the
+backend authenticates and validates every request.
 
 ## Verification
 
@@ -81,7 +68,7 @@ npm run check:hygiene
 npm audit --audit-level=high
 ```
 
-The optional browser smoke requires a locally installed Playwright browser:
+Browser tests require Playwright Chromium:
 
 ```bash
 npx playwright install chromium
@@ -89,37 +76,15 @@ npm run test:e2e
 npm run test:e2e:demo
 ```
 
-For a cross-repository smoke, start the backend with the frontend origin in its CORS list, then run:
+To check a running backend against the frontend contract:
 
 ```bash
 RELIAFORGE_OPENAPI_URL=http://127.0.0.1:8000/api/v1/openapi.json npm run check:contract
 RELIAFORGE_E2E_LIVE=1 RELIAFORGE_E2E_API_URL=http://127.0.0.1:8000 npm run test:e2e
 ```
 
-## API contract
-
-The UI consumes these versioned endpoints:
-
-- `GET /api/v1/status`
-- `GET /api/v1/plugins`
-- `GET /api/v1/plugins/{plugin_id}`
-- `POST /api/v1/plugins/{plugin_id}/{start|stop|restart}`
-
-Each plugin response includes `available_actions`; the UI renders only those backend-authorized
-controls and never infers a lifecycle transition from state alone. Restart stops, reinitializes,
-and starts the already loaded plugin. It does not imply that the backend reloads Python source or
-a manifest from disk.
-
-GitHub Actions repeats the quality gate on Node.js 20 and 24, then runs the normal and read-only
-demo Chromium browser contracts. A `main` build is deployed to GitHub Pages only after those jobs
-pass. Coverage is enforced globally at 80% statements/functions/lines and 75% branches; current
-coverage can exceed the gate without weakening it on later changes.
-
-See [Development](docs/development.md) for the frontend structure and [Plugin contract](docs/plugin-contract.md) for the fields rendered by the UI.
-
-## Security and community
-
-Please read the [Changelog](CHANGELOG.md), [Security](SECURITY.md), [Contributing](CONTRIBUTING.md), and the [Code of Conduct](CODE_OF_CONDUCT.md) before reporting issues or proposing changes.
+See [Development](docs/development.md) for the source layout and
+[Plugin data](docs/plugin-contract.md) for fields shown by the console.
 
 ## License
 

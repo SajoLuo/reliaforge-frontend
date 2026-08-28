@@ -14,6 +14,7 @@ export default {
         "accent-ink": "rgb(var(--accent-ink) / <alpha-value>)",
         "accent-soft": "rgb(var(--accent-soft) / <alpha-value>)",
         danger: "rgb(var(--danger) / <alpha-value>)",
+        "danger-button-ink": "rgb(var(--danger-button-ink) / <alpha-value>)",
         "danger-soft": "rgb(var(--danger-soft) / <alpha-value>)",
         "danger-ink": "rgb(var(--danger-ink) / <alpha-value>)",
         "success-soft": "rgb(var(--success-soft) / <alpha-value>)",

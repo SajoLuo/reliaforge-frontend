@@ -93,7 +93,10 @@ export function usePlugin(pluginId: string): UsePluginReturn {
           setActionState({
             routeIdentity: loader,
             pending: action,
-            error: apiErrorMessage(requestError, t("action.failed")),
+            error: apiErrorMessage(requestError, t("action.failed"), {
+              authenticationRequired: t("error.authenticationRequired"),
+              permissionDenied: t("error.permissionDenied"),
+            }),
           })
         }
         return null
