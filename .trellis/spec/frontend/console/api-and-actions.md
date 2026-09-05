@@ -29,6 +29,10 @@ The data flow is `page -> feature hook -> src/api/plugins.ts -> ReliaForgeApi ad
 - `src/api/demoAdapter.ts` validates deterministic public fixtures through
   `src/api/contracts.ts`, returns independent objects, and exposes empty `available_actions`.
 - `src/api/client.ts` is the sole HTTP client; its same-origin fallback remains `/api/v1`.
+- A lost lifecycle response or server/gateway error is an unconfirmed outcome. Read state once,
+  preserve the warning across automatic and manual status reads, and never automatically repeat
+  the write. Keep authoritative successful
+  POST responses as the primary result and preserve route/unmount guards.
 - `PluginView.available_actions` is the sole source of lifecycle controls. State and health never
   imply authorization.
 - Localization happens after parsing. Only the exact shipped neutral fixture values may receive

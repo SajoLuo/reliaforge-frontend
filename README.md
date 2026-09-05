@@ -2,10 +2,10 @@
 
 [简体中文](README_CN.md)
 
-The ReliaForge frontend is a React console for the
-[ReliaForge backend](https://github.com/SajoLuo/reliaforge-backend). It shows backend status, plugin
-health, dependencies, configuration fields, and the start, stop, or restart actions currently
-allowed by the backend.
+ReliaForge is a plugin-based operations platform for hosting Python services. This React console
+connects to the [ReliaForge backend](https://github.com/SajoLuo/reliaforge-backend) to show plugin
+status, health details, dependencies, configuration fields, and available start, stop, and restart
+controls. Users access each plugin's service through its own API or author-provided interface.
 
 - [Project documentation](https://reliaforge.dev/)
 - [Read-only online demo](https://demo.reliaforge.dev/)
@@ -22,6 +22,9 @@ npm run dev
 
 Open `http://127.0.0.1:5530`. The example connects to the backend at
 `http://127.0.0.1:8000`.
+
+On the backend, use its `.env.example` or set `RELIAFORGE_CORS_ORIGINS` to
+`["http://127.0.0.1:5530"]` before starting it so the browser can connect from this origin.
 
 `VITE_RELIAFORGE_API_URL` sets the backend origin. If it is absent, the console uses same-origin
 `/api/v1`. Never put an API key or shared secret in a `VITE_*` variable because browser build files

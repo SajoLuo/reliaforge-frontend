@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest"
-import { apiErrorMessage } from "@/api/errors"
+import { actionOutcomeIsUnknown, apiErrorMessage } from "@/api/errors"
 
 function axiosError(detail: unknown, status = 500): object {
   return { isAxiosError: true, response: { status, data: { detail } } }
 }
 
 describe("apiErrorMessage", () => {
+  it("distinguishes rejected operations from uncertain transport and server outcomes", () => {
+    expect(actionOutcomeIsUnknown(axiosError("Rejected", 409))).toBe(false)
+    expect(actionOutcomeIsUnknown(axiosError("Unauthorized", 401))).toBe(false)
+    expect(actionOutcomeIsUnknown(axiosError("Request timeout", 408))).toBe(true)
+    expect(actionOutcomeIsUnknown(axiosError("Gateway timeout", 504))).toBe(true)
+    expect(actionOutcomeIsUnknown({ isAxiosError: true })).toBe(true)
+    expect(actionOutcomeIsUnknown(new Error("Invalid response after POST"))).toBe(true)
+  })
+
   it("prefers a backend problem detail", () => {
     expect(apiErrorMessage(axiosError("Active dependents prevent stop."), "Fallback")).toBe("Active dependents prevent stop.")
   })

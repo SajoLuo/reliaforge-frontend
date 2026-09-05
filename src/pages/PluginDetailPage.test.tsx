@@ -47,6 +47,19 @@ beforeEach(() => {
 })
 
 describe("PluginDetailPage", () => {
+  it("shows diagnostic details returned by an unavailable plugin", async () => {
+    vi.mocked(getPlugin).mockResolvedValue({
+      ...plugin,
+      state: "error",
+      available_actions: [],
+      health: { status: "error", details: { reason: "dependency_unavailable" } },
+    })
+    renderDetail()
+
+    expect(await screen.findByText(/dependency_unavailable/)).toBeInTheDocument()
+    expect(screen.getByText(/Last checked/)).toBeInTheDocument()
+  })
+
   it("renders only lifecycle actions authorized by the backend", async () => {
     vi.mocked(getPlugin).mockResolvedValue(plugin)
     renderDetail()
@@ -79,7 +92,7 @@ describe("PluginDetailPage", () => {
       .mockReturnValueOnce(refresh)
     vi.mocked(runPluginAction).mockRejectedValue({
       isAxiosError: true,
-      response: { data: { detail: "Active dependents prevent stop." } },
+      response: { status: 409, data: { detail: "Active dependents prevent stop." } },
     })
     renderDetail()
 

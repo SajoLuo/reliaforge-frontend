@@ -14,10 +14,10 @@ The plugin list and detail page use the same backend response.
 | `state` | Current run state |
 | `available_actions` | Start, stop, or restart buttons currently allowed by the backend |
 | `dependencies` | Required plugin IDs and accepted SemVer ranges |
-| `capabilities` | Named services provided by the plugin |
+| `capabilities` | Shared Python services available to other plugins |
 | `settings_schema` | Configuration fields from the plugin's Python settings class |
 | `frontend` | Optional category for grouping the plugin |
-| `health` | Current health status and message |
+| `health` | Reported health status and diagnostic details |
 
 Health can be degraded while the plugin remains running. Summary counts place each plugin in one of
 four groups: running, degraded, stopped, or error.

@@ -61,4 +61,15 @@ The normalized 1:1 console comparison keeps the complete sidebar, notice, header
 
 - P3: if a later brand review favors exact embedded-preview parity over standalone recognition, the desktop sidebar wordmark can be hidden while retaining an accessible name.
 
+## Copy verification on 2026-09-05
+
+- Explained the demo using preset data and available actions, without framework details.
+- Reworded failed reads so they do not imply that a plugin has stopped; simplified health labels.
+- Added localized quick-start and plugin-tutorial links to About. Verified their exact destinations
+  in English and Chinese and confirmed that the public pages respond successfully.
+- Checked About and plugin details in light and dark themes at desktop and mobile widths. No
+  horizontal overflow or page exceptions; demo pages made no API requests.
+- Verified the normal console against a real local backend, then verified the production demo
+  build and regenerated the website's console previews.
+
 final result: passed

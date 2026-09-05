@@ -2,7 +2,7 @@
   "name": "reliaforge-frontend",
   "private": true,
   "version": "0.1.0",
-  "description": "The ReliaForge web control plane for lifecycle-managed operations plugins.",
+  "description": "The web console for the ReliaForge plugin-based operations platform.",
   "license": "MIT",
   "author": "Sajo Luo",
   "homepage": "https://reliaforge.dev/",

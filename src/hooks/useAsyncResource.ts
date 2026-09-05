@@ -10,12 +10,14 @@ interface ResourceState<T> {
   data: T | null
   error: string | null
   loading: boolean
+  updatedAt: number | null
 }
 
 export interface AsyncResource<T> {
   data: T | null
   error: string | null
   loading: boolean
+  updatedAt: number | null
   refresh: () => Promise<void>
   replace: (data: T) => void
 }
@@ -30,6 +32,7 @@ export function useAsyncResource<T>(
     data: null,
     error: null,
     loading: true,
+    updatedAt: null,
   })
   const loaderRef = useRef(loader)
   const resourceKeyRef = useRef<ResourceKey>(resourceKey)
@@ -68,12 +71,13 @@ export function useAsyncResource<T>(
         data: previous.key === requestKey ? previous.data : null,
         error: null,
         loading: true,
+        updatedAt: previous.key === requestKey ? previous.updatedAt : null,
       }))
     }
     try {
       const result = await loaderRef.current(controller.signal)
       if (isCurrentRequest(controller, generation, requestKey)) {
-        setState({ key: requestKey, data: result, error: null, loading: false })
+        setState({ key: requestKey, data: result, error: null, loading: false, updatedAt: Date.now() })
       }
     } catch (requestError) {
       if (isCurrentRequest(controller, generation, requestKey)) {
@@ -86,6 +90,7 @@ export function useAsyncResource<T>(
             permissionDenied: translate("error.permissionDenied"),
           }),
           loading: false,
+          updatedAt: previous.key === requestKey ? previous.updatedAt : null,
         }))
       }
     } finally {
@@ -99,7 +104,7 @@ export function useAsyncResource<T>(
     activeController.current?.abort()
     activeController.current = null
     if (mounted.current) {
-      setState({ key: requestKey, data, error: null, loading: false })
+      setState({ key: requestKey, data, error: null, loading: false, updatedAt: Date.now() })
     }
   }, [])
 
@@ -126,6 +131,7 @@ export function useAsyncResource<T>(
     data: isSettledKey ? state.data : null,
     error: isSettledKey ? state.error : null,
     loading: isSettledKey ? state.loading : true,
+    updatedAt: isSettledKey ? state.updatedAt : null,
     refresh,
     replace,
   }

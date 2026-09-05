@@ -58,6 +58,43 @@ function plugin(id: string): PluginView {
 afterEach(() => vi.resetAllMocks())
 
 describe("usePlugin", () => {
+  it("rechecks state after a lost action response without retrying the action", async () => {
+    const running = plugin("a")
+    const stopped: PluginView = { ...running, state: "stopped", available_actions: ["start"] }
+    vi.mocked(getPlugin).mockResolvedValueOnce(running).mockResolvedValueOnce(stopped)
+    vi.mocked(runPluginAction).mockRejectedValue({ isAxiosError: true, code: "ECONNABORTED" })
+    const { result } = renderHook(() => usePlugin("a"))
+    await waitFor(() => expect(result.current.data?.state).toBe("running"))
+
+    await act(async () => result.current.performAction("stop"))
+
+    expect(result.current.data?.state).toBe("stopped")
+    expect(result.current.actionError).toContain("could not be confirmed")
+    expect(runPluginAction).toHaveBeenCalledOnce()
+    expect(getPlugin).toHaveBeenCalledTimes(2)
+  })
+
+  it("keeps an uncertain result visible when its status check also fails", async () => {
+    vi.mocked(getPlugin).mockResolvedValueOnce(plugin("a")).mockRejectedValue(new Error("Offline"))
+    vi.mocked(runPluginAction).mockRejectedValue({ isAxiosError: true, response: { status: 504 } })
+    const { result } = renderHook(() => usePlugin("a"))
+    await waitFor(() => expect(result.current.data?.state).toBe("running"))
+
+    await act(async () => result.current.performAction("restart"))
+
+    expect(result.current.actionError).toContain("could not be confirmed")
+    expect(result.current.error).toBe("Offline")
+    expect(runPluginAction).toHaveBeenCalledOnce()
+
+    const lastRead = result.current.updatedAt
+    await act(async () => result.current.refresh())
+    expect(result.current.actionError).toContain("could not be confirmed")
+    expect(result.current.error).toBe("Offline")
+    expect(result.current.updatedAt).toBe(lastRead)
+    expect(getPlugin).toHaveBeenCalledTimes(3)
+    expect(runPluginAction).toHaveBeenCalledOnce()
+  })
+
   it("commits the action response without issuing a redundant detail request", async () => {
     const running = plugin("a")
     const stopped: PluginView = {
@@ -150,6 +187,9 @@ describe("usePlugin", () => {
     act(() => result.current.navigate("/zh/"))
     await waitFor(() => expect(result.current.pluginState.actionError).toBe("你没有执行此操作的权限。"))
     expect(runPluginAction).toHaveBeenCalledOnce()
+
+    await act(async () => result.current.pluginState.refresh())
+    expect(result.current.pluginState.actionError).toBeNull()
   })
 
   it("does not restore an abandoned pending action after navigating back", async () => {

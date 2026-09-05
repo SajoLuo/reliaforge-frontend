@@ -3,7 +3,8 @@ import { PageHeader } from "@/components/common/PageHeader"
 import { useLocale } from "@/i18n/useLocale"
 
 export function AboutPage() {
-  const { t } = useLocale()
+  const { locale, t } = useLocale()
+  const guideRoot = `https://reliaforge.dev/${locale === "zh" ? "zh/" : ""}guide`
   const principles = [
     { title: t("about.manifestTitle"), body: t("about.manifestBody"), icon: BookOpen },
     { title: t("about.lifecycleTitle"), body: t("about.lifecycleBody"), icon: Code2 },
@@ -35,6 +36,10 @@ export function AboutPage() {
               </li>
             ))}
           </ol>
+          <div className="mt-7 flex flex-wrap gap-5 text-sm font-medium text-accent">
+            <a className="underline underline-offset-4 focus-visible:outline focus-visible:outline-2" href={`${guideRoot}/getting-started.html`}>{t("about.quickStartLink")}</a>
+            <a className="underline underline-offset-4 focus-visible:outline focus-visible:outline-2" href={`${guideRoot}/plugin-development.html`}>{t("about.pluginGuideLink")}</a>
+          </div>
           <p className="mt-7 text-xs text-muted">{t("about.copyright")}</p>
         </div>
       </section>

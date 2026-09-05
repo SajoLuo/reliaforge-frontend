@@ -2,6 +2,9 @@
 
 [简体中文](zh/development.md)
 
+The console manages plugins installed in a ReliaForge backend. Plugin-specific service interfaces
+belong to their authors; a runbook is one possible plugin service.
+
 ## Request flow
 
 ```text
@@ -58,4 +61,11 @@ makes no API requests. Use the
 5. Add a unit test and a browser test for an important operator journey.
 
 Lifecycle buttons must come from `available_actions`; pages and hooks do not derive them from plugin
-state. Async hooks cancel superseded requests and ignore results after unmount.
+state. Async hooks cancel superseded requests and ignore results after unmount. Successful reads
+and actions record when the displayed data was obtained.
+
+If a lifecycle request loses its response or returns a server/gateway error, the console reports an
+unconfirmed result and reads the plugin state once. It never retries the write automatically.
+The warning remains visible across manual refreshes; a state read alone cannot identify the result
+of that particular request.
+The action request timeout remains 310 seconds; ordinary reads use 10 seconds.

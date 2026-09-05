@@ -32,14 +32,15 @@ function healthTone(status: string): "success" | "warning" | "danger" | "neutral
 export function PluginDetailPage() {
   const { t } = useLocale()
   const { pluginId = "" } = useParams<{ pluginId: string }>()
-  const { data, error, loading, refresh, actionPending, actionError, performAction } = usePlugin(pluginId)
+  const { data, error, loading, updatedAt, refresh, actionPending, actionError, performAction } = usePlugin(pluginId)
 
   if (loading && !data) return <StatePanel kind="loading" title={t("detail.loadingTitle")} description={t("detail.loadingDescription")} />
-  if (error || !data) return <StatePanel kind="error" title={t("detail.errorTitle")} description={error || t("detail.notFound")} onRetry={refresh} />
+  if (error || !data) return <StatePanel kind="error" title={t("detail.errorTitle")} description={[actionError, error || t("detail.notFound")].filter(Boolean).join(" ")} onRetry={refresh} />
 
   return (
     <PluginDetailContent
       plugin={data}
+      updatedAt={updatedAt}
       refreshing={loading}
       actionPending={actionPending}
       actionError={actionError}
@@ -51,6 +52,7 @@ export function PluginDetailPage() {
 
 interface PluginDetailContentProps {
   plugin: PluginView
+  updatedAt: number | null
   refreshing: boolean
   actionPending: UsePluginReturn["actionPending"]
   actionError: UsePluginReturn["actionError"]
@@ -60,13 +62,14 @@ interface PluginDetailContentProps {
 
 function PluginDetailContent({
   plugin: data,
+  updatedAt,
   refreshing,
   actionPending,
   actionError,
   onRefresh,
   performAction,
 }: PluginDetailContentProps) {
-  const { pathFor, t } = useLocale()
+  const { locale, pathFor, t } = useLocale()
   const presentation = pluginPresentation(data, t)
   return (
     <div className="space-y-10">
@@ -100,6 +103,7 @@ function PluginDetailContent({
       />
 
       {actionError ? <p className="rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger-ink" role="alert">{actionError}</p> : null}
+      {updatedAt !== null ? <p className="text-sm text-muted">{t("detail.lastChecked", { time: new Date(updatedAt).toLocaleTimeString(locale === "zh" ? "zh-CN" : "en-US") })}</p> : null}
 
       <section className="grid gap-5 lg:grid-cols-[1fr_1fr]">
         <Card>
@@ -125,6 +129,22 @@ function PluginDetailContent({
           </CardContent>
         </Card>
       </section>
+
+      {data.health.details && Object.keys(data.health.details).length ? (
+        <Card>
+          <CardHeader><h2 className="text-sm font-semibold tracking-tight">{t("detail.healthDetails")}</h2></CardHeader>
+          <CardContent>
+            <dl className="space-y-3 text-sm">
+              {Object.entries(data.health.details).map(([key, value]) => (
+                <div key={key} className="grid gap-1 sm:grid-cols-[12rem_1fr]">
+                  <dt className="break-words font-medium">{key}</dt>
+                  <dd className="break-words text-muted">{typeof value === "string" ? value : JSON.stringify(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader><h2 className="text-sm font-semibold tracking-tight">{t("detail.settingsSchema")}</h2><p className="text-sm text-muted">{t("detail.settingsDescription")}</p></CardHeader>

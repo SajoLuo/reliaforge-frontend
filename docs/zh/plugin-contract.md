@@ -14,10 +14,10 @@
 | `state` | 当前运行状态 |
 | `available_actions` | 后端当前允许的启动、停止或重启按钮 |
 | `dependencies` | 所需插件 ID 和可接受的 SemVer 范围 |
-| `capabilities` | 插件提供的命名服务 |
+| `capabilities` | 供其他插件调用的共享 Python 服务 |
 | `settings_schema` | 来自插件 Python 设置类的配置项 |
 | `frontend` | 用于插件分组的可选分类 |
-| `health` | 当前健康状态和消息 |
+| `health` | 插件报告的健康状态和详细信息 |
 
 插件运行时，健康状态仍可能是降级。摘要会把每个插件归入运行中、降级、已停止或错误中的一类。
 
