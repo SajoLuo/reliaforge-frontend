@@ -38,12 +38,12 @@ function renderDetail() {
 
 afterEach(() => {
   cleanup()
-  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   vi.resetAllMocks()
 })
 
 beforeEach(() => {
-  vi.spyOn(window, "confirm").mockReturnValue(true)
+  vi.stubGlobal("confirm", vi.fn(() => true))
 })
 
 describe("PluginDetailPage", () => {
