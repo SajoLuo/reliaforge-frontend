@@ -15,6 +15,12 @@ const defaultAuthorizationMessages: AuthorizationMessages = {
   permissionDenied: "You do not have permission to perform this action.",
 }
 
+export function actionOutcomeIsUnknown(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return true
+  const status = error.response?.status
+  return status === undefined || status === 408 || status >= 500
+}
+
 function authorizationMessage(
   status: number | undefined,
   messages: AuthorizationMessages,

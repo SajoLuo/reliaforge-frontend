@@ -2,9 +2,9 @@
 
 [English](README.md)
 
-ReliaForge 前端是 [ReliaForge 后端](https://github.com/SajoLuo/reliaforge-backend)的 React
-控制台。它显示后端状态、插件健康情况、依赖和配置项，以及后端当前允许执行的启动、停止或
-重启操作。
+ReliaForge 是托管 Python 服务的插件式运维平台。本仓库的 React 控制台连接
+[ReliaForge 后端](https://github.com/SajoLuo/reliaforge-backend)，显示插件状态、健康详情、依赖、
+配置项和当前可用的启停操作。使用插件的业务服务时，调用它自己的 API，或使用作者提供的界面。
 
 - [项目文档](https://reliaforge.dev/zh/)
 - [只读在线演示](https://demo.reliaforge.dev/#/zh/)
@@ -20,6 +20,9 @@ npm run dev
 ```
 
 打开 `http://127.0.0.1:5530`。示例会连接到 `http://127.0.0.1:8000` 的后端。
+
+启动后端前，使用后端的 `.env.example`，或把 `RELIAFORGE_CORS_ORIGINS` 设为
+`["http://127.0.0.1:5530"]`，允许浏览器从这个地址连接。
 
 `VITE_RELIAFORGE_API_URL` 用于设置后端来源。没有设置时，控制台使用同源 `/api/v1`。
 不要把 API 密钥或共享密钥放入 `VITE_*` 变量，因为浏览器构建文件都是公开的。
