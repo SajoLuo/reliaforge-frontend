@@ -28,11 +28,20 @@ presentation fields.
 
 ## Public Copy
 
+Describe ReliaForge as a plugin-based operations platform. The console manages plugin status and
+lifecycle; plugin authors define service APIs and business interfaces. Runbooks are one possible
+plugin service. Label capabilities as shared Python services, and configuration schema as accepted
+fields rather than active configuration values.
+
 Write UI copy and repository documentation for an SRE using the current release. Lead with the
 state or next action, use plain operational language, and explain project-specific terms on first
 use. Omit design history, rejected alternatives, internal predecessors, and irrelevant
 compatibility claims. Keep English and Chinese behavior equivalent, including client-generated
 errors; backend-provided detail remains unchanged.
+
+UI copy must distinguish a failed request from a failed plugin. Avoid recommending a cause, such
+as a version mismatch, without evidence. Demo notices explain what can be tried; framework names
+and adapter implementation details belong in developer documentation.
 
 ## CI and Deployment
 

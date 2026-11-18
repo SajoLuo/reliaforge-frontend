@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
-import { apiErrorMessage } from "@/api/errors"
+import { actionOutcomeIsUnknown, apiErrorMessage } from "@/api/errors"
 import { getPlatformStatus, getPlugin, listPlugins, runPluginAction } from "@/api/plugins"
 import { useAsyncResource, type AsyncResource } from "@/hooks/useAsyncResource"
 import type { PlatformStatusResponse, PluginAction, PluginListResponse, PluginView } from "@/types/plugin"
@@ -70,6 +70,8 @@ export function usePlugin(pluginId: string): UsePluginReturn {
 
   const refresh = useCallback(async () => {
     setActionState((previous) => previous.routeIdentity === loader
+      && previous.error !== null
+      && !actionOutcomeIsUnknown(previous.error.cause)
       ? { ...previous, error: null }
       : previous)
     await refreshResource()
@@ -99,6 +101,7 @@ export function usePlugin(pluginId: string): UsePluginReturn {
             pending: action,
             error: { cause: requestError },
           })
+          if (actionOutcomeIsUnknown(requestError)) await refreshResource()
         }
         return null
       } finally {
@@ -112,12 +115,14 @@ export function usePlugin(pluginId: string): UsePluginReturn {
         }
       }
     },
-    [loader, pluginId, replaceResource],
+    [loader, pluginId, replaceResource, refreshResource],
   )
 
   const actionPending = actionState.routeIdentity === loader ? actionState.pending : null
   const actionError = actionState.routeIdentity === loader && actionState.error
-    ? apiErrorMessage(actionState.error.cause, t("action.failed"), {
+    ? actionOutcomeIsUnknown(actionState.error.cause)
+      ? t("action.unconfirmed")
+      : apiErrorMessage(actionState.error.cause, t("action.failed"), {
         authenticationRequired: t("error.authenticationRequired"),
         permissionDenied: t("error.permissionDenied"),
       })

@@ -13,7 +13,7 @@ describe("AppErrorBoundary", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined)
     render(<AppErrorBoundary><BrokenView /></AppErrorBoundary>)
 
-    expect(screen.getByRole("alert")).toHaveTextContent("ReliaForge could not render this response")
+    expect(screen.getByRole("alert")).toHaveTextContent("This page could not be displayed")
     expect(consoleError).toHaveBeenCalledWith("ReliaForge render failure", expect.any(Error))
   })
 })
