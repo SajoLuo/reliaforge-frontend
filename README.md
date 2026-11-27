@@ -3,7 +3,7 @@
 [简体中文](README_CN.md)
 
 ReliaForge is a plugin-based operations platform for hosting Python services. This React console
-connects to the [ReliaForge backend](https://github.com/SajoLuo/reliaforge-backend) to show plugin
+connects to the [ReliaForge backend](https://github.com/ReliaForge/reliaforge-backend) to show plugin
 status, health details, dependencies, configuration fields, and available start, stop, and restart
 controls. Users access each plugin's service through its own API or author-provided interface.
 

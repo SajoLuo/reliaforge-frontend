@@ -4,6 +4,15 @@
   "description": "Shared runtime SDK, TypeScript contracts, Tailwind preset, and Vite build plugin for ReliaForge console plugins.",
   "license": "MIT",
   "author": "Sajo Luo",
+  "homepage": "https://reliaforge.dev/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReliaForge/reliaforge-frontend.git",
+    "directory": "packages/plugin-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/ReliaForge/reliaforge-frontend/issues"
+  },
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

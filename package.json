@@ -8,10 +8,10 @@
   "homepage": "https://reliaforge.dev/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SajoLuo/reliaforge-frontend.git"
+    "url": "git+https://github.com/ReliaForge/reliaforge-frontend.git"
   },
   "bugs": {
-    "url": "https://github.com/SajoLuo/reliaforge-frontend/issues"
+    "url": "https://github.com/ReliaForge/reliaforge-frontend/issues"
   },
   "engines": {
     "node": ">=20",
