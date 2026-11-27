@@ -197,6 +197,7 @@ export interface ApiFetchOptions {
   body?: unknown
   headers?: Record<string, string>
   signal?: AbortSignal
+  timeoutMs?: number
 }
 
 export interface PluginLinkProps extends Omit<LinkProps, "to"> {

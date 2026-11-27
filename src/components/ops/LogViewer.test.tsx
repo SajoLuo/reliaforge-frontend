@@ -86,6 +86,15 @@ describe("LogViewer", () => {
     await user.click(screen.getByRole("button", { name: "Pause" }))
     expect(screen.getByText("Paused")).toBeInTheDocument()
 
+    // Incoming lines while paused must NOT shift the frozen paused snapshot until resumed.
+    act(() => {
+      source.emit("message", "after pause line")
+    })
+    expect(screen.queryByText("after pause line")).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Resume" }))
+    expect(screen.getByText("after pause line")).toBeInTheDocument()
+
     await user.type(screen.getByRole("searchbox"), "warn")
     expect(screen.getByText("warn check")).toBeInTheDocument()
     expect(screen.queryByText("plain line")).not.toBeInTheDocument()
@@ -98,5 +107,24 @@ describe("LogViewer", () => {
 
     unmount()
     expect(source.closed).toBe(true)
+  })
+
+  it("caps static non-streaming lines to maxLines and disables copy when clipboard API is absent", () => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined })
+    render(
+      <LogViewer
+        maxLines={2}
+        lines={[
+          { id: "1", message: "static-one" },
+          { id: "2", message: "static-two" },
+          { id: "3", message: "static-three" },
+        ]}
+      />,
+    )
+
+    expect(screen.queryByText("static-one")).not.toBeInTheDocument()
+    expect(screen.getByText("static-two")).toBeInTheDocument()
+    expect(screen.getByText("static-three")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Copy" })).toBeDisabled()
   })
 })

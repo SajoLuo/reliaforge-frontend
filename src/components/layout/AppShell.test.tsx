@@ -146,6 +146,27 @@ describe("AppShell dynamic plugin navigation and theme switcher", () => {
         health: { status: "stopped", details: null },
       },
       {
+        id: "platform_guide",
+        name: "Platform Guide",
+        version: "1.0.0",
+        description: "Platform link",
+        api_version: "v1",
+        state: "running",
+        available_actions: [],
+        dependencies: [],
+        capabilities: [],
+        settings_schema: {},
+        frontend: {
+          category: "Platform",
+          ui_mode: "esm",
+          nav: [{ label: "System Info", label_zh: "系统信息", path: "", icon: "info", order: 10, section: "platform" }],
+          provides_themes: [],
+          entry_url: null,
+          style_url: null,
+        },
+        health: { status: "healthy", details: null },
+      },
+      {
         id: "homoshell_theme",
         name: "Theme",
         version: "1.0.0",
@@ -199,6 +220,7 @@ describe("AppShell dynamic plugin navigation and theme switcher", () => {
 
     expect(await screen.findByRole("link", { name: "Kubernetes 集群" })).toHaveAttribute("href", "/zh/p/kubernetes")
     expect(screen.getByRole("link", { name: /操作审计/ })).toHaveAttribute("href", "/zh/p/ops_audit")
+    expect(screen.getByRole("link", { name: "系统信息" })).toHaveAttribute("href", "/zh/p/platform_guide")
     expect(screen.getByLabelText("已停止")).toBeInTheDocument()
 
     const select = await screen.findByTestId("appearance-switcher")

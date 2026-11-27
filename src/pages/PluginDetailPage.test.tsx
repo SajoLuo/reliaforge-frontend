@@ -144,19 +144,36 @@ describe("PluginDetailPage", () => {
     expect(runPluginAction).not.toHaveBeenCalled()
   })
 
-  it("shows optional dependency badge and workspace link for running ESM plugins", async () => {
+  it("shows optional dependency badge and workspace link only when routes or nav exist", async () => {
     vi.mocked(getPlugin).mockResolvedValue({
       ...plugin,
       dependencies: [{ id: "ops_audit", version: "^1.0.0", optional: true }],
       frontend: {
         ...plugin.frontend,
         ui_mode: "esm",
+        nav: [{ label: "Runbook", label_zh: null, path: "", icon: null, order: 10, section: "workspace" }],
         entry_url: "/api/v1/plugins/runbook/ui/entry.js?v=abc",
       },
     })
-    renderDetail()
+    const view = renderDetail()
 
     expect(await screen.findByText("optional")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Open workspace" })).toHaveAttribute("href", "/p/runbook")
+    view.unmount()
+
+    vi.mocked(getPlugin).mockResolvedValue({
+      ...plugin,
+      id: "homoshell_theme",
+      frontend: {
+        ...plugin.frontend,
+        ui_mode: "esm",
+        nav: [],
+        provides_themes: ["homoshell-pc98"],
+        entry_url: "/api/v1/plugins/homoshell_theme/ui/entry.js?v=abc",
+      },
+    })
+    renderDetail()
+    expect(await screen.findByText("Runbook Preview")).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "Open workspace" })).not.toBeInTheDocument()
   })
 })

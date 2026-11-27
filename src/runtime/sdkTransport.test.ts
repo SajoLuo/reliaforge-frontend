@@ -79,4 +79,22 @@ describe("sdkTransport", () => {
     const wsUrl = createWebSocketUrl("/plugins/proxmox/ws/nodes/pve-01/lxc/101/terminal")
     expect(wsUrl).toMatch(/^wss?:\/\/.*\/api\/v1\/plugins\/proxmox\/ws\/nodes\/pve-01\/lxc\/101\/terminal$/)
   })
+
+  it("aborts apiFetch requests that exceed timeoutMs", async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: string, init?: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(init.signal?.reason ?? new Error("aborted")))
+        }),
+      ),
+    )
+
+    const pending = apiFetch("/plugins/proxmox/overview", { timeoutMs: 250 })
+    const assertion = expect(pending).rejects.toMatchObject({ name: "TimeoutError" })
+    await vi.advanceTimersByTimeAsync(250)
+    await assertion
+    vi.useRealTimers()
+  })
 })

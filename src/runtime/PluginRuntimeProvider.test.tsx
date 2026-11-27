@@ -45,6 +45,7 @@ function Probe() {
       <span data-testid="widgets">{runtime.widgets.map((w) => w.id).join(",")}</span>
       <span data-testid="themes">{theme.themes.map((t) => t.id).join(",")}</span>
       <span data-testid="errors">{JSON.stringify(runtime.errors)}</span>
+      <span data-testid="catalog-error">{runtime.catalogError ?? ""}</span>
       <button type="button" onClick={() => void runtime.refresh()}>Refresh</button>
     </div>
   )
@@ -117,5 +118,68 @@ describe("PluginRuntimeProvider", () => {
     expect(screen.getByTestId("themes")).toHaveTextContent("reliaforge")
     expect(screen.getByTestId("themes")).not.toHaveTextContent("homoshell-pc98")
     expect(document.head.querySelector('link[data-rf-plugin-style="homoshell_theme"]')).toBeNull()
+  })
+
+  it("retries failed plugins with cache-busting query param, reloads style changes, and surfaces catalogError", async () => {
+    const first = esmPlugin("proxmox", "running")
+    const updatedStyle: PluginView = {
+      ...first,
+      frontend: { ...first.frontend, style_url: "/api/v1/plugins/proxmox/ui/style.css?v=updated" },
+    }
+    const upgradedBroken: PluginView = {
+      ...updatedStyle,
+      frontend: { ...updatedStyle.frontend, entry_url: "/api/v1/plugins/proxmox/ui/entry.js?v=broken2" },
+    }
+
+    vi.mocked(listPlugins)
+      .mockResolvedValueOnce({ plugins: [first] })
+      .mockResolvedValueOnce({ plugins: [first] })
+      .mockResolvedValueOnce({ plugins: [updatedStyle] })
+      .mockResolvedValueOnce({ plugins: [upgradedBroken] })
+      .mockRejectedValueOnce(new Error("Backend unreachable"))
+
+    const importModule = vi.fn()
+      .mockRejectedValueOnce(new Error("Temporary 503"))
+      .mockResolvedValueOnce({ default: { apiVersion: "v1", id: "proxmox", routes: [] } })
+      .mockResolvedValueOnce({ default: { apiVersion: "v1", id: "proxmox", routes: [] } })
+      .mockRejectedValueOnce(new Error("Broken v2"))
+
+    render(
+      <ThemeProvider>
+        <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
+          <Probe />
+        </PluginRuntimeProvider>
+      </ThemeProvider>,
+    )
+
+    await waitFor(() => expect(screen.getByTestId("errors")).toHaveTextContent("Temporary 503"))
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Refresh" }).click()
+    })
+    await waitFor(() => expect(screen.getByTestId("loaded")).toHaveTextContent("proxmox"))
+    expect(importModule).toHaveBeenNthCalledWith(
+      2,
+      "https://ops.example.com/api/v1/plugins/proxmox/ui/entry.js?v=abc123def456&retry=1",
+    )
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Refresh" }).click()
+    })
+    await waitFor(() =>
+      expect(document.head.querySelector<HTMLLinkElement>('link[data-rf-plugin-style="proxmox"]')?.href)
+        .toBe("https://ops.example.com/api/v1/plugins/proxmox/ui/style.css?v=updated"),
+    )
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Refresh" }).click()
+    })
+    await waitFor(() => expect(screen.getByTestId("errors")).toHaveTextContent("Broken v2"))
+    expect(screen.getByTestId("loaded")).toHaveTextContent("")
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Refresh" }).click()
+    })
+    await waitFor(() => expect(screen.getByTestId("catalog-error")).toHaveTextContent("Backend unreachable"))
   })
 })

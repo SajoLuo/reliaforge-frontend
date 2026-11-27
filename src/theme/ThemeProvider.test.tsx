@@ -130,4 +130,25 @@ describe("ThemeProvider", () => {
     expect(screen.getByTestId("active")).toHaveTextContent(DEFAULT_THEME_ID)
     expect(window.localStorage.getItem("reliaforge.console.theme")).toBeNull()
   })
+
+  it("keeps persisted theme preference when an unrelated non-theme plugin unregisters", () => {
+    window.localStorage.setItem("reliaforge.console.theme", "homoshell-pc98")
+    function UnrelatedHarness() {
+      const { unregisterPluginThemes, selectedThemeId } = useTheme()
+      return (
+        <div>
+          <span data-testid="selected">{selectedThemeId}</span>
+          <button type="button" onClick={() => unregisterPluginThemes("proxmox")}>UnregisterProxmox</button>
+        </div>
+      )
+    }
+    render(
+      <ThemeProvider>
+        <UnrelatedHarness />
+      </ThemeProvider>,
+    )
+    act(() => screen.getByRole("button", { name: "UnregisterProxmox" }).click())
+    expect(screen.getByTestId("selected")).toHaveTextContent("homoshell-pc98")
+    expect(window.localStorage.getItem("reliaforge.console.theme")).toBe("homoshell-pc98")
+  })
 })

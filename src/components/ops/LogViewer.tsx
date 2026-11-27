@@ -10,8 +10,7 @@ import { createEventSource } from "@/runtime/sdkTransport"
 const DEFAULT_MAX_LINES = 5000
 
 function appendWithCap(existing: LogLine[], incoming: LogLine[], cap: number): LogLine[] {
-  if (incoming.length === 0) return existing
-  const combined = [...existing, ...incoming]
+  const combined = incoming.length === 0 ? existing : [...existing, ...incoming]
   return combined.length > cap ? combined.slice(combined.length - cap) : combined
 }
 
@@ -120,6 +119,7 @@ function LogToolbar({
   showTimestamps,
   filterText,
   copied,
+  canCopy,
   onFilterChange,
   onTogglePause,
   onToggleTimestamps,
@@ -133,6 +133,7 @@ function LogToolbar({
   showTimestamps: boolean
   filterText: string
   copied: boolean
+  canCopy: boolean
   onFilterChange: (value: string) => void
   onTogglePause: () => void
   onToggleTimestamps: () => void
@@ -166,7 +167,7 @@ function LogToolbar({
           <Clock className="h-3.5 w-3.5" aria-hidden="true" />
           {t("ops.logs.timestamps")}
         </Button>
-        <Button type="button" variant="secondary" size="small" onClick={onCopy}>
+        <Button type="button" variant="secondary" size="small" disabled={!canCopy} onClick={onCopy}>
           {copied ? <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
           {copied ? t("ops.logs.copied") : t("ops.logs.copy")}
         </Button>
@@ -279,6 +280,31 @@ function useStreamedLogs(
   return { activeLines, status, pushLines, updateStatus }
 }
 
+async function copyToClipboard(text: string): Promise<boolean> {
+  const writeText = navigator?.clipboard?.writeText
+  if (typeof writeText !== "function") return false
+  try {
+    await writeText.call(navigator.clipboard, text)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function hasClipboardApi(): boolean {
+  return typeof navigator !== "undefined" && typeof navigator.clipboard?.writeText === "function"
+}
+
+function filterVisibleLogLines(lines: LogLine[], filterText: string): LogLine[] {
+  const query = filterText.trim().toLowerCase()
+  return query ? lines.filter((line) => matchesLogQuery(line, query)) : lines
+}
+
+function LogErrorBanner({ error }: { error: string | null }) {
+  if (!error) return null
+  return <p role="alert" className="border-b bg-danger-soft px-4 py-2 text-xs text-danger-ink">{error}</p>
+}
+
 export function LogViewer({
   lines = [],
   streamUrl,
@@ -293,21 +319,23 @@ export function LogViewer({
   className,
 }: LogViewerProps) {
   const { activeLines, status: streamStatus, pushLines, updateStatus } = useStreamedLogs(streamUrl, maxLines)
-  const [paused, setPaused] = useState(false)
+  const [pausedSnapshot, setPausedSnapshot] = useState<LogLine[] | null>(null)
   const [showTimestamps, setShowTimestamps] = useState(defaultShowTimestamps)
   const [filterText, setFilterText] = useState("")
   const [copied, setCopied] = useState(false)
   const viewportRef = useRef<HTMLDivElement>(null)
+  const paused = pausedSnapshot !== null
 
-  const allLines = useMemo(
+  const liveLines = useMemo(
     () => appendWithCap(lines, activeLines, maxLines),
     [activeLines, lines, maxLines],
   )
+  const effectiveLines = pausedSnapshot ?? liveLines
 
-  const visibleLines = useMemo(() => {
-    const query = filterText.trim().toLowerCase()
-    return query ? allLines.filter((line) => matchesLogQuery(line, query)) : allLines
-  }, [allLines, filterText])
+  const visibleLines = useMemo(
+    () => filterVisibleLogLines(effectiveLines, filterText),
+    [effectiveLines, filterText],
+  )
 
   useEffect(() => {
     if (!paused && viewportRef.current) {
@@ -321,7 +349,7 @@ export function LogViewer({
   )
 
   const handleCopy = async () => {
-    await navigator.clipboard?.writeText(exportText)
+    if (!(await copyToClipboard(exportText))) return
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1500)
   }
@@ -329,13 +357,7 @@ export function LogViewer({
   return (
     <section className={cn("overflow-hidden rounded-lg border bg-panel", className)} data-testid="log-viewer">
       {streamUrl ? (
-        <SseLogSubscriber
-          key={streamUrl}
-          streamUrl={streamUrl}
-          parseLine={parseLine}
-          onLines={pushLines}
-          onStatus={updateStatus}
-        />
+        <SseLogSubscriber key={streamUrl} streamUrl={streamUrl} parseLine={parseLine} onLines={pushLines} onStatus={updateStatus} />
       ) : null}
 
       <LogToolbar
@@ -346,14 +368,15 @@ export function LogViewer({
         showTimestamps={showTimestamps}
         filterText={filterText}
         copied={copied}
+        canCopy={hasClipboardApi()}
         onFilterChange={setFilterText}
-        onTogglePause={() => setPaused((p) => !p)}
+        onTogglePause={() => setPausedSnapshot((prev) => (prev === null ? liveLines : null))}
         onToggleTimestamps={() => setShowTimestamps((s) => !s)}
         onCopy={() => void handleCopy()}
         onDownload={() => downloadTextFile(exportText, downloadFileName)}
       />
 
-      {error ? <p role="alert" className="border-b bg-danger-soft px-4 py-2 text-xs text-danger-ink">{error}</p> : null}
+      <LogErrorBanner error={error} />
 
       <LogViewport
         viewportRef={viewportRef}

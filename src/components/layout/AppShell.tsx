@@ -263,6 +263,10 @@ export function AppShell({ children, className }: AppShellProps) {
     () => collectNavEntries(plugins, "operations", locale, pathFor),
     [locale, pathFor, plugins],
   )
+  const platformPluginEntries = useMemo(
+    () => collectNavEntries(plugins, "platform", locale, pathFor),
+    [locale, pathFor, plugins],
+  )
   const hasPluginNav = workspaceEntries.length > 0 || operationsEntries.length > 0
 
   useEffect(() => () => {
@@ -366,6 +370,35 @@ export function AppShell({ children, className }: AppShellProps) {
                 {t(label as MessageKey)}
               </NavLink>
             ))}
+            {platformPluginEntries.map(({ key, to, label, icon: Icon, plugin, end }) => {
+              const indicator = pluginNavStatusDot(plugin)
+              return (
+                <NavLink
+                  key={key}
+                  to={to}
+                  end={end}
+                  onClick={closeNavigation}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex min-h-10 items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-neutral-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+                      isActive && "bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent",
+                    )
+                  }
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{label}</span>
+                  </span>
+                  {indicator ? (
+                    <span
+                      className={cn("h-2 w-2 shrink-0 rounded-full", indicator.tone)}
+                      title={t(indicator.labelKey)}
+                      aria-label={t(indicator.labelKey)}
+                    />
+                  ) : null}
+                </NavLink>
+              )
+            })}
           </div>
         </nav>
 

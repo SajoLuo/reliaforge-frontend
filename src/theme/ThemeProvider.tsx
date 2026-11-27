@@ -180,11 +180,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const unregisterPluginThemes = useCallback((pluginId: string) => {
+    const removed = pluginThemesRef.current.filter((theme) => theme.pluginId === pluginId)
+    if (removed.length === 0) return
     const next = pluginThemesRef.current.filter((theme) => theme.pluginId !== pluginId)
     pluginThemesRef.current = next
     setPluginThemes(next)
-    fallbackIfMissing([...defaultThemes, ...next])
-  }, [fallbackIfMissing])
+    setSelectedThemeId((current) => {
+      if (removed.some((theme) => theme.id === current)) {
+        writeStoredThemeId(DEFAULT_THEME_ID)
+        return DEFAULT_THEME_ID
+      }
+      return current
+    })
+  }, [])
 
   const markCatalogSettled = useCallback((settled: boolean) => {
     if (!settled) return

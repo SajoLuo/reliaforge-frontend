@@ -74,6 +74,22 @@ describe("API response contracts", () => {
       style_url: null,
     })
 
+    const fortyEightCodePoints = "🚀".repeat(48)
+    const unicodeNav = parsePluginView({
+      ...plugin,
+      frontend: {
+        ...plugin.frontend,
+        nav: [{ label: fortyEightCodePoints, path: "" }],
+      },
+    })
+    expect(unicodeNav.frontend.nav[0].label).toBe(fortyEightCodePoints)
+    expect(() =>
+      parsePluginView({
+        ...plugin,
+        frontend: { ...plugin.frontend, nav: [{ label: "🚀".repeat(49), path: "" }] },
+      }),
+    ).toThrow("Invalid API response: plugin.frontend.nav.label.")
+
     expect(parsePluginListResponse({ plugins: [plugin] }).plugins).toHaveLength(1)
     expect(parsePlatformStatusResponse({
       status: "healthy",

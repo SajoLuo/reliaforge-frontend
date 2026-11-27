@@ -124,7 +124,8 @@ function parseNavLabel(value: unknown, field: string, optional: false): string
 function parseNavLabel(value: unknown, field: string, optional: boolean): string | null {
   if (optional && (value === undefined || value === null)) return null
   const label = stringValue(value, field)
-  if (label.length < 1 || label.length > 48) invalid(field)
+  const codePointLength = [...label].length
+  if (codePointLength < 1 || codePointLength > 48) invalid(field)
   return label
 }
 

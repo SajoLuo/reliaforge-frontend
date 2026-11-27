@@ -8,7 +8,7 @@ import { usePlugin } from "@/hooks/usePlugins"
 import type { Translator } from "@/i18n/types"
 import { useLocale } from "@/i18n/useLocale"
 import { usePluginRuntime } from "@/runtime/PluginRuntimeProvider"
-import { PluginRouteContext } from "@/runtime/pluginRouting"
+import { buildPluginPath, PluginRouteContext } from "@/runtime/pluginRouting"
 import type { PluginView } from "@/types/plugin"
 
 function renderUnavailableWorkspace(
@@ -50,33 +50,71 @@ function renderUnavailableWorkspace(
 }
 
 function PluginRoutesView({
-  pluginId,
+  plugin,
   loadedModule,
+  detailLink,
 }: {
-  pluginId: string
+  plugin: PluginView
   loadedModule: ReliaForgeFrontendPlugin
+  detailLink: ReactNode
 }) {
-  const { pathFor } = useLocale()
+  const { pathFor, t } = useLocale()
   const routes = loadedModule.routes ?? []
+  if (routes.length === 0) {
+    return (
+      <StatePanel
+        kind="empty"
+        title={t("workspace.notFoundTitle")}
+        description={t("workspace.noUiDescription", { name: plugin.name })}
+        action={detailLink}
+      />
+    )
+  }
+  const fallbackTarget = buildPluginPath(
+    plugin.id,
+    routes.find((route) => route.path.replace(/^\/+/, "") === "")?.path ?? routes[0].path,
+    pathFor,
+  )
+
   return (
-    <div data-rf-plugin={pluginId}>
-      <PluginErrorBoundary pluginId={pluginId}>
-        <PluginRouteContext.Provider value={pluginId}>
+    <div data-rf-plugin={plugin.id}>
+      <PluginErrorBoundary pluginId={plugin.id}>
+        <PluginRouteContext.Provider value={plugin.id}>
           <Routes>
             {routes.map((route) => {
               const Element = route.element
               const trimmed = route.path.replace(/^\/+/, "")
               if (trimmed === "") {
-                return <Route key="__root__" index element={<Element pluginId={pluginId} />} />
+                return <Route key="__root__" index element={<Element pluginId={plugin.id} />} />
               }
-              return <Route key={route.path} path={trimmed} element={<Element pluginId={pluginId} />} />
+              return <Route key={route.path} path={trimmed} element={<Element pluginId={plugin.id} />} />
             })}
-            <Route path="*" element={<Navigate to={pathFor(`/p/${encodeURIComponent(pluginId)}`)} replace />} />
+            <Route path="*" element={<Navigate to={fallbackTarget} replace />} />
           </Routes>
         </PluginRouteContext.Provider>
       </PluginErrorBoundary>
     </div>
   )
+}
+
+function renderRuntimePendingOrError(
+  plugin: PluginView,
+  detailLink: ReactNode,
+  runtime: ReturnType<typeof usePluginRuntime>,
+  t: Translator,
+): ReactNode {
+  const unavailable = renderUnavailableWorkspace(plugin, detailLink, t)
+  if (unavailable) return unavailable
+
+  const loadedModule = runtime.loadedPlugins[plugin.id]
+  const loadError = runtime.errors[plugin.id] ?? (!loadedModule ? runtime.catalogError : null)
+  if (loadError) {
+    return <StatePanel kind="error" title={t("workspace.loadErrorTitle")} description={loadError} onRetry={runtime.refresh} />
+  }
+  if (!loadedModule) {
+    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} description={t("workspace.loadingDescription")} />
+  }
+  return <PluginRoutesView plugin={plugin} loadedModule={loadedModule} detailLink={detailLink} />
 }
 
 export function PluginWorkspacePage() {
@@ -109,18 +147,5 @@ export function PluginWorkspacePage() {
     </Link>
   )
 
-  const unavailable = renderUnavailableWorkspace(plugin, detailLink, t)
-  if (unavailable) return unavailable
-
-  const loadError = runtime.errors[plugin.id]
-  if (loadError) {
-    return <StatePanel kind="error" title={t("workspace.loadErrorTitle")} description={loadError} onRetry={runtime.refresh} />
-  }
-
-  const loadedModule = runtime.loadedPlugins[plugin.id]
-  if (!loadedModule) {
-    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} description={t("workspace.loadingDescription")} />
-  }
-
-  return <PluginRoutesView pluginId={plugin.id} loadedModule={loadedModule} />
+  return renderRuntimePendingOrError(plugin, detailLink, runtime, t)
 }

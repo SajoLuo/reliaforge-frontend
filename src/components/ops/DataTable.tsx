@@ -139,6 +139,21 @@ function TableHeadCell<T>({
   )
 }
 
+const INTERACTIVE_ROW_TAGS = new Set(["A", "BUTTON", "INPUT", "SELECT", "TEXTAREA"])
+
+function handleRowKeyDown<T>(
+  event: React.KeyboardEvent<HTMLTableRowElement>,
+  row: T,
+  onRowClick?: (row: T) => void,
+) {
+  if (!onRowClick) return
+  if (event.key !== "Enter" && event.key !== " ") return
+  const target = event.target as HTMLElement | null
+  if (target && target !== event.currentTarget && INTERACTIVE_ROW_TAGS.has(target.tagName)) return
+  event.preventDefault()
+  onRowClick(row)
+}
+
 function TableBodyGrid<T>({
   columns,
   rows,
@@ -168,8 +183,13 @@ function TableBodyGrid<T>({
           {rows.map((row) => (
             <tr
               key={rowKey(row)}
+              tabIndex={onRowClick ? 0 : undefined}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={cn("transition-colors", onRowClick && "cursor-pointer hover:bg-neutral-soft/60")}
+              onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, row, onRowClick) : undefined}
+              className={cn(
+                "transition-colors",
+                onRowClick && "cursor-pointer hover:bg-neutral-soft/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
+              )}
             >
               {columns.map((column) => (
                 <td

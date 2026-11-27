@@ -112,8 +112,45 @@ function PluginDependenciesList({ dependencies }: { dependencies: PluginView["de
   )
 }
 
+function DetailHeaderActions({
+  plugin,
+  canOpenWorkspace,
+  refreshing,
+  actionPending,
+  onRefresh,
+  performAction,
+}: {
+  plugin: PluginView
+  canOpenWorkspace: boolean
+  refreshing: boolean
+  actionPending: UsePluginReturn["actionPending"]
+  onRefresh: () => Promise<void>
+  performAction: UsePluginReturn["performAction"]
+}) {
+  const { pathFor, t } = useLocale()
+  return (
+    <>
+      {canOpenWorkspace ? (
+        <Link
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-ink transition-colors hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          to={pathFor(`/p/${encodeURIComponent(plugin.id)}`)}
+        >
+          {t("detail.openWorkspace")} <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      ) : null}
+      <Button variant="secondary" disabled={refreshing || actionPending !== null} aria-busy={refreshing} onClick={() => void onRefresh()}>
+        <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("common.refresh")}
+      </Button>
+      {plugin.available_actions.length ? (
+        <LifecycleActions actions={plugin.available_actions} pending={actionPending} disabled={refreshing} onAction={performAction} />
+      ) : null}
+    </>
+  )
+}
+
 function PluginDetailContent({
   plugin: data,
+  hasWorkspaceRoutes,
   updatedAt,
   refreshing,
   actionPending,
@@ -122,6 +159,7 @@ function PluginDetailContent({
   performAction,
 }: {
   plugin: PluginView
+  hasWorkspaceRoutes: boolean
   updatedAt: number | null
   refreshing: boolean
   actionPending: UsePluginReturn["actionPending"]
@@ -131,7 +169,12 @@ function PluginDetailContent({
 }) {
   const { locale, pathFor, t } = useLocale()
   const presentation = pluginPresentation(data, t)
-  const canOpenWorkspace = data.state === "running" && data.frontend.ui_mode === "esm" && Boolean(data.frontend.entry_url)
+  const canOpenWorkspace = (
+    data.state === "running"
+    && data.frontend.ui_mode === "esm"
+    && Boolean(data.frontend.entry_url)
+    && (data.frontend.nav.length > 0 || hasWorkspaceRoutes)
+  )
   return (
     <div className="space-y-10">
       <Link className="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" to={pathFor("/plugins")}>
@@ -142,22 +185,14 @@ function PluginDetailContent({
         title={presentation.name}
         description={presentation.description}
         actions={
-          <>
-            {canOpenWorkspace ? (
-              <Link
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-ink transition-colors hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-                to={pathFor(`/p/${encodeURIComponent(data.id)}`)}
-              >
-                {t("detail.openWorkspace")} <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            ) : null}
-            <Button variant="secondary" disabled={refreshing || actionPending !== null} aria-busy={refreshing} onClick={() => void onRefresh()}>
-              <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("common.refresh")}
-            </Button>
-            {data.available_actions.length ? (
-              <LifecycleActions actions={data.available_actions} pending={actionPending} disabled={refreshing} onAction={performAction} />
-            ) : null}
-          </>
+          <DetailHeaderActions
+            plugin={data}
+            canOpenWorkspace={canOpenWorkspace}
+            refreshing={refreshing}
+            actionPending={actionPending}
+            onRefresh={onRefresh}
+            performAction={performAction}
+          />
         }
       />
 
@@ -208,14 +243,19 @@ export function PluginDetailPage() {
   if (error || !data) return <StatePanel kind="error" title={t("detail.errorTitle")} description={[actionError, error || t("detail.notFound")].filter(Boolean).join(" ")} onRetry={refresh} />
 
   const handleAction = async (action: PluginAction) => {
-    const updated = await performAction(action)
-    if (updated) await runtime.refresh()
-    return updated
+    try {
+      return await performAction(action)
+    } finally {
+      await runtime.refresh()
+    }
   }
+
+  const hasWorkspaceRoutes = (runtime.loadedPlugins[data.id]?.routes?.length ?? 0) > 0
 
   return (
     <PluginDetailContent
       plugin={data}
+      hasWorkspaceRoutes={hasWorkspaceRoutes}
       updatedAt={updatedAt}
       refreshing={loading}
       actionPending={actionPending}

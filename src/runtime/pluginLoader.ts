@@ -6,6 +6,62 @@ export type ModuleImporter = (resolvedUrl: string) => Promise<unknown>
 export const defaultModuleImporter: ModuleImporter = (resolvedUrl) =>
   import(/* @vite-ignore */ resolvedUrl)
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+function isRenderableComponent(value: unknown): boolean {
+  return typeof value === "function" || (typeof value === "object" && value !== null && "$$typeof" in value)
+}
+
+function validateRoutes(routes: unknown, pluginId: string): void {
+  if (routes === undefined) return
+  if (!Array.isArray(routes)) {
+    throw new Error(`Plugin "${pluginId}" module routes must be an array.`)
+  }
+  for (const route of routes) {
+    if (!isPlainRecord(route) || typeof route.path !== "string" || !isRenderableComponent(route.element)) {
+      throw new Error(`Plugin "${pluginId}" declared an invalid route entry.`)
+    }
+  }
+}
+
+function validateOverviewWidgets(widgets: unknown, pluginId: string): void {
+  if (widgets === undefined) return
+  if (!Array.isArray(widgets)) {
+    throw new Error(`Plugin "${pluginId}" module overviewWidgets must be an array.`)
+  }
+  for (const widget of widgets) {
+    if (
+      !isPlainRecord(widget)
+      || typeof widget.id !== "string"
+      || !widget.id.trim()
+      || typeof widget.title !== "string"
+      || !isRenderableComponent(widget.component)
+    ) {
+      throw new Error(`Plugin "${pluginId}" declared an invalid overview widget.`)
+    }
+  }
+}
+
+function validateThemes(themes: unknown, pluginId: string): void {
+  if (themes === undefined) return
+  if (!Array.isArray(themes)) {
+    throw new Error(`Plugin "${pluginId}" module themes must be an array.`)
+  }
+  for (const theme of themes) {
+    if (
+      !isPlainRecord(theme)
+      || typeof theme.id !== "string"
+      || typeof theme.label !== "string"
+      || typeof theme.cssClass !== "string"
+      || !isPlainRecord(theme.tokens)
+    ) {
+      throw new Error(`Plugin "${pluginId}" declared an invalid theme definition.`)
+    }
+  }
+}
+
 export function resolvePluginAssetUrl(
   rawUrl: string,
   pluginId: string,
@@ -42,18 +98,21 @@ export function validatePluginModule(
     ? (rawModule as { default: unknown }).default
     : rawModule
 
-  if (typeof candidate !== "object" || candidate === null) {
+  if (!isPlainRecord(candidate)) {
     throw new Error(`Plugin "${expectedPluginId}" module did not export a plugin descriptor.`)
   }
 
-  const plugin = candidate as Partial<ReliaForgeFrontendPlugin>
-  if (plugin.apiVersion !== "v1") {
+  if (candidate.apiVersion !== "v1") {
     throw new Error(`Plugin "${expectedPluginId}" module apiVersion must be "v1".`)
   }
-  if (plugin.id !== expectedPluginId) {
-    throw new Error(`Plugin module id "${String(plugin.id)}" does not match "${expectedPluginId}".`)
+  if (candidate.id !== expectedPluginId) {
+    throw new Error(`Plugin module id "${String(candidate.id)}" does not match "${expectedPluginId}".`)
   }
-  return plugin as ReliaForgeFrontendPlugin
+
+  validateRoutes(candidate.routes, expectedPluginId)
+  validateOverviewWidgets(candidate.overviewWidgets, expectedPluginId)
+  validateThemes(candidate.themes, expectedPluginId)
+  return candidate as unknown as ReliaForgeFrontendPlugin
 }
 
 export function injectPluginStyle(pluginId: string, styleUrl: string): void {
@@ -81,6 +140,14 @@ export interface LoadPluginModuleOptions {
   styleUrl: string | null
   apiOrigin?: string
   importModule?: ModuleImporter
+  retryAttempt?: number
+}
+
+function appendRetryParam(url: string, retryAttempt?: number): string {
+  if (!retryAttempt) return url
+  const parsed = new URL(url)
+  parsed.searchParams.set("retry", String(retryAttempt))
+  return parsed.toString()
 }
 
 export async function loadPluginModule({
@@ -89,8 +156,12 @@ export async function loadPluginModule({
   styleUrl,
   apiOrigin = getApiOrigin(),
   importModule = defaultModuleImporter,
+  retryAttempt,
 }: LoadPluginModuleOptions): Promise<ReliaForgeFrontendPlugin> {
-  const resolvedEntryUrl = resolvePluginAssetUrl(entryUrl, pluginId, apiOrigin)
+  const resolvedEntryUrl = appendRetryParam(
+    resolvePluginAssetUrl(entryUrl, pluginId, apiOrigin),
+    retryAttempt,
+  )
   if (styleUrl) {
     const resolvedStyleUrl = resolvePluginAssetUrl(styleUrl, pluginId, apiOrigin)
     injectPluginStyle(pluginId, resolvedStyleUrl)

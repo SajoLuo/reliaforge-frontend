@@ -93,7 +93,7 @@ describe("TerminalPane", () => {
     const onExit = vi.fn()
     const connection = { wsUrl: "/plugins/kubernetes/ws/pods/default/web/exec", onExit }
 
-    const { unmount } = render(
+    const { rerender, unmount } = render(
       <TerminalPane title="Pod Shell" connection={connection} />,
     )
 
@@ -106,6 +106,15 @@ describe("TerminalPane", () => {
     const socket = MockWebSocket.instances[0]
     expect(socket.url).toMatch(/^wss?:\/\/.*\/api\/v1\/plugins\/kubernetes\/ws\/pods\/default\/web\/exec$/)
     expect(socket.binaryType).toBe("arraybuffer")
+
+    // Re-rendering with a new inline object sharing the same wsUrl keeps the existing socket open
+    // while updating callbacks to the latest render.
+    const latestOnExit = vi.fn()
+    rerender(
+      <TerminalPane title="Pod Shell" connection={{ wsUrl: connection.wsUrl, onExit: latestOnExit }} />,
+    )
+    expect(MockWebSocket.instances).toHaveLength(1)
+    expect(socket.closed).toBe(false)
 
     act(() => socket.onopen?.())
     expect(screen.getByText("Connected")).toBeInTheDocument()
@@ -124,7 +133,8 @@ describe("TerminalPane", () => {
     expect(socket.sent).toContain(JSON.stringify({ type: "ping" }))
 
     act(() => socket.onmessage?.({ data: JSON.stringify({ type: "exit", code: 0 }) }))
-    expect(onExit).toHaveBeenCalledWith(0)
+    expect(onExit).not.toHaveBeenCalled()
+    expect(latestOnExit).toHaveBeenCalledWith(0)
     expect(screen.getByText("Exited (0)")).toBeInTheDocument()
 
     unmount()

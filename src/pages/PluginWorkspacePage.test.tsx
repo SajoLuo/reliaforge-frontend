@@ -103,4 +103,54 @@ describe("PluginWorkspacePage", () => {
     expect(await screen.findByText("Plugin is not running")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Inspect plugin details" })).toHaveAttribute("href", "/plugins/proxmox")
   })
+
+  it("renders a clear notice when a running ESM plugin exports no routes and surfaces catalogError", async () => {
+    const themeOnly: PluginView = {
+      ...proxmoxPlugin,
+      id: "homoshell_theme",
+      name: "HomoShell Theme",
+      frontend: { ...proxmoxPlugin.frontend, nav: [], entry_url: "/api/v1/plugins/homoshell_theme/ui/entry.js?v=1" },
+    }
+    vi.mocked(listPlugins).mockResolvedValueOnce({ plugins: [themeOnly] })
+    vi.mocked(getPlugin).mockResolvedValueOnce(themeOnly)
+    const importModule = vi.fn().mockResolvedValue({
+      default: { apiVersion: "v1", id: "homoshell_theme", themes: [] },
+    })
+
+    const view = render(
+      <MemoryRouter initialEntries={["/p/homoshell_theme"]}>
+        <LocaleProvider>
+          <ThemeProvider>
+            <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
+              <Routes>
+                <Route path="/p/:pluginId/*" element={<PluginWorkspacePage />} />
+              </Routes>
+            </PluginRuntimeProvider>
+          </ThemeProvider>
+        </LocaleProvider>
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText("Plugin workspace unavailable")).toBeInTheDocument()
+    view.unmount()
+
+    vi.mocked(listPlugins).mockRejectedValueOnce(new Error("Catalog read failed"))
+    vi.mocked(getPlugin).mockResolvedValueOnce(proxmoxPlugin)
+    render(
+      <MemoryRouter initialEntries={["/p/proxmox"]}>
+        <LocaleProvider>
+          <ThemeProvider>
+            <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={vi.fn()}>
+              <Routes>
+                <Route path="/p/:pluginId/*" element={<PluginWorkspacePage />} />
+              </Routes>
+            </PluginRuntimeProvider>
+          </ThemeProvider>
+        </LocaleProvider>
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText("Could not load plugin workspace")).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent("Catalog read failed")
+  })
 })

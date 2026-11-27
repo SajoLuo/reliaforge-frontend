@@ -52,6 +52,12 @@ describe("DataTable", () => {
     await user.click(screen.getByText("pve-01"))
     expect(onRowClick).toHaveBeenCalledWith({ name: "pve-01", cpu: 12 })
 
+    const row = screen.getByText("pve-01").closest("tr")!
+    row.focus()
+    await user.keyboard("{Enter}")
+    await user.keyboard(" ")
+    expect(onRowClick).toHaveBeenCalledTimes(3)
+
     await user.click(screen.getByRole("button", { name: "Clear filter" }))
     expect(screen.getAllByRole("row")).toHaveLength(3)
   })

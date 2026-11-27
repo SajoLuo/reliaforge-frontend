@@ -1,6 +1,8 @@
 import type { ApiFetchOptions } from "@reliaforge/plugin-sdk"
 import { buildApiBaseUrl } from "@/api/client"
 
+export const DEFAULT_API_FETCH_TIMEOUT_MS = 15_000
+
 export class ApiFetchError extends Error {
   readonly status: number
   readonly body: unknown
@@ -48,7 +50,7 @@ function isRawBodyInit(value: unknown): value is BodyInit {
   )
 }
 
-function buildRequestInit(options: ApiFetchOptions): RequestInit {
+function buildRequestInit(options: ApiFetchOptions, signal: AbortSignal): RequestInit {
   const headers = new Headers({ Accept: "application/json", ...options.headers })
   let body: BodyInit | undefined
   if (options.body !== undefined) {
@@ -63,7 +65,30 @@ function buildRequestInit(options: ApiFetchOptions): RequestInit {
     method: options.method ?? "GET",
     headers,
     body,
-    signal: options.signal,
+    signal,
+  }
+}
+
+function createRequestSignal(callerSignal?: AbortSignal, timeoutMs = DEFAULT_API_FETCH_TIMEOUT_MS) {
+  const controller = new AbortController()
+  const onCallerAbort = () => controller.abort(callerSignal?.reason)
+  if (callerSignal) {
+    if (callerSignal.aborted) {
+      controller.abort(callerSignal.reason)
+      return { signal: controller.signal, cleanup: () => undefined }
+    }
+    callerSignal.addEventListener("abort", onCallerAbort, { once: true })
+  }
+  const timer = globalThis.setTimeout(
+    () => controller.abort(new DOMException("Request timed out", "TimeoutError")),
+    timeoutMs,
+  )
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      globalThis.clearTimeout(timer)
+      callerSignal?.removeEventListener("abort", onCallerAbort)
+    },
   }
 }
 
@@ -91,12 +116,20 @@ export async function apiFetch<T = unknown>(
   options: ApiFetchOptions = {},
 ): Promise<T> {
   const url = resolveApiUrl(path)
-  const response = await fetch(url, buildRequestInit(options))
-  const payload = await parseResponseBody(response)
-  if (!response.ok) {
-    throw new ApiFetchError(extractErrorMessage(response, payload), response.status, payload)
+  const { signal, cleanup } = createRequestSignal(
+    options.signal,
+    options.timeoutMs ?? DEFAULT_API_FETCH_TIMEOUT_MS,
+  )
+  try {
+    const response = await fetch(url, buildRequestInit(options, signal))
+    const payload = await parseResponseBody(response)
+    if (!response.ok) {
+      throw new ApiFetchError(extractErrorMessage(response, payload), response.status, payload)
+    }
+    return payload as T
+  } finally {
+    cleanup()
   }
-  return payload as T
 }
 
 export function createEventSource(path: string, init?: EventSourceInit): EventSource {

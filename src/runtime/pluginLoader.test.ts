@@ -52,6 +52,23 @@ describe("pluginLoader", () => {
       .toThrow('apiVersion must be "v1"')
     expect(() => validatePluginModule({ default: { apiVersion: "v1", id: "other" } }, "proxmox"))
       .toThrow('does not match "proxmox"')
+    expect(() => validatePluginModule({ default: { apiVersion: "v1", id: "proxmox", routes: "bad" } }, "proxmox"))
+      .toThrow("routes must be an array")
+    expect(() =>
+      validatePluginModule({ default: { apiVersion: "v1", id: "proxmox", routes: [{ path: 123 }] } }, "proxmox"),
+    ).toThrow("invalid route entry")
+    expect(() =>
+      validatePluginModule(
+        { default: { apiVersion: "v1", id: "proxmox", overviewWidgets: [{ id: "" }] } },
+        "proxmox",
+      ),
+    ).toThrow("invalid overview widget")
+    expect(() =>
+      validatePluginModule(
+        { default: { apiVersion: "v1", id: "proxmox", themes: [{ id: "a", label: "A", cssClass: "c", tokens: null }] } },
+        "proxmox",
+      ),
+    ).toThrow("invalid theme definition")
   })
 
   it("injects and cleans up stylesheet links during loadPluginModule", async () => {

@@ -1,5 +1,5 @@
 import { AlertTriangle, ShieldAlert } from "lucide-react"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import type { ActionRiskLevel, ConfirmActionDialogProps, ConfirmActionRequest } from "@reliaforge/plugin-sdk"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,8 +12,25 @@ const riskTones: Record<ActionRiskLevel, NonNullable<BadgeProps["tone"]>> = {
   destructive: "danger",
 }
 
+const FOCUSABLE_SELECTOR = "input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex='-1'])"
+
 function requiresTypedTarget(risk: ActionRiskLevel, explicit?: boolean): boolean {
   return explicit ?? (risk === "sensitive" || risk === "destructive")
+}
+
+function cycleModalFocus(event: KeyboardEvent, container: HTMLElement | null) {
+  if (event.key !== "Tab") return
+  const focusable = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? [])
+  const first = focusable[0]
+  const last = focusable.at(-1)
+  if (!first || !last) return
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
 }
 
 function DialogWarning({ text }: { text?: string }) {
@@ -21,11 +38,23 @@ function DialogWarning({ text }: { text?: string }) {
   return (
     <div
       role="note"
-      className="mt-4 flex items-start gap-2.5 rounded-md border border-warning-ink/20 bg-warning-soft px-3.5 py-2.5 text-xs leading-5 text-warning-ink"
+      className="mt-3 flex items-start gap-2.5 rounded-md border border-warning-ink/20 bg-warning-soft px-3.5 py-2.5 text-xs leading-5 text-warning-ink"
     >
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
       <span>{text}</span>
     </div>
+  )
+}
+
+function DialogWarnings({ request }: { request: ConfirmActionRequest }) {
+  const showGeneral = Boolean(
+    request.warningBanner && request.warningBanner !== request.argocdManagedWarning,
+  )
+  return (
+    <>
+      <DialogWarning text={request.argocdManagedWarning} />
+      {showGeneral ? <DialogWarning text={request.warningBanner} /> : null}
+    </>
   )
 }
 
@@ -129,12 +158,26 @@ function ConfirmDialogBody({
 }) {
   const { t } = useLocale()
   const [typedTarget, setTypedTarget] = useState("")
+  const dialogRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
   const descriptionId = useId()
 
   useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+    firstFocusable?.focus()
+    return () => {
+      if (opener?.isConnected) opener.focus()
+    }
+  }, [])
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !pending) onCancel()
+      if (event.key === "Escape" && !pending) {
+        onCancel()
+        return
+      }
+      cycleModalFocus(event, dialogRef.current)
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
@@ -152,6 +195,7 @@ function ConfirmDialogBody({
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -170,7 +214,7 @@ function ConfirmDialogBody({
         </div>
 
         <p id={descriptionId} className="mt-3 text-sm leading-6 text-muted">{request.description}</p>
-        <DialogWarning text={request.argocdManagedWarning ?? request.warningBanner} />
+        <DialogWarnings request={request} />
         <DialogDetails details={request.details} />
         <TypedTargetInput
           visible={needsTyping}
