@@ -13,17 +13,17 @@ The plugin list and detail page use the same backend response.
 | `api_version` | ReliaForge plugin API version |
 | `state` | Current run state |
 | `available_actions` | Start, stop, or restart buttons currently allowed by the backend |
-| `dependencies` | Required plugin IDs and accepted SemVer ranges |
+| `dependencies` | Required or optional (`optional`) plugin IDs and accepted SemVer ranges |
 | `capabilities` | Shared Python services available to other plugins |
 | `settings_schema` | Configuration fields from the plugin's Python settings class |
-| `frontend` | Optional category for grouping the plugin |
+| `frontend` | Category, ESM UI mode (`ui_mode`), sidebar navigation (`nav`), theme IDs (`provides_themes`), and computed asset URLs (`entry_url`, `style_url`) |
 | `health` | Reported health status and diagnostic details |
 
 Health can be degraded while the plugin remains running. Summary counts place each plugin in one of
 four groups: running, degraded, stopped, or error.
 
 The console never calculates `available_actions` from plugin state. An action list can be empty when
-a plugin failed to load, a dependency is unavailable, or a running plugin depends on it. The
+a plugin failed to load, a required dependency is unavailable, or a running plugin depends on it. The
 read-only demo uses empty action lists for every saved plugin.
 
 Client-generated labels and errors are translated. Data returned by the backend remains unchanged,

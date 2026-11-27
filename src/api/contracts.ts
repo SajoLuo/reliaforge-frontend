@@ -1,4 +1,7 @@
 import type {
+  FrontendNavItem,
+  FrontendNavSection,
+  FrontendUiMode,
   HealthStatus,
   JsonObject,
   JsonValue,
@@ -12,6 +15,9 @@ import type {
   PluginSummary,
   PluginView,
 } from "@/types/plugin"
+
+const NAV_PATH_PATTERN = /^(?:\/[a-z0-9][a-z0-9_-]*)*$/
+const NAV_ICON_PATTERN = /^[a-z0-9-]{1,40}$/
 
 function invalid(field: string): never {
   throw new Error(`Invalid API response: ${field}.`)
@@ -27,6 +33,12 @@ function record(value: unknown, field: string): Record<string, unknown> {
 }
 
 function stringValue(value: unknown, field: string): string {
+  if (typeof value !== "string") invalid(field)
+  return value
+}
+
+function nullableString(value: unknown, field: string): string | null {
+  if (value === undefined || value === null) return null
   if (typeof value !== "string") invalid(field)
   return value
 }
@@ -85,19 +97,79 @@ function jsonObject(value: unknown, field: string): JsonObject {
 
 function dependency(value: unknown): PluginDependency {
   const source = record(value, "plugin.dependencies")
+  if (source.optional !== undefined && typeof source.optional !== "boolean") {
+    invalid("plugin.dependencies.optional")
+  }
   return {
     id: stringValue(source.id, "plugin.dependencies.id"),
     version: stringValue(source.version, "plugin.dependencies.version"),
+    optional: source.optional ?? false,
   }
+}
+
+function uiMode(value: unknown): FrontendUiMode {
+  if (value === undefined) return "none"
+  if (value === "none" || value === "esm") return value
+  return invalid("plugin.frontend.ui_mode")
+}
+
+function navSection(value: unknown): FrontendNavSection {
+  if (value === undefined) return "workspace"
+  if (value === "workspace" || value === "operations" || value === "platform") return value
+  return invalid("plugin.frontend.nav.section")
+}
+
+function parseNavLabel(value: unknown, field: string, optional: true): string | null
+function parseNavLabel(value: unknown, field: string, optional: false): string
+function parseNavLabel(value: unknown, field: string, optional: boolean): string | null {
+  if (optional && (value === undefined || value === null)) return null
+  const label = stringValue(value, field)
+  if (label.length < 1 || label.length > 48) invalid(field)
+  return label
+}
+
+function parseNavOrder(value: unknown): number {
+  const order = value === undefined ? 100 : integer(value, "plugin.frontend.nav.order")
+  if (order > 9999) invalid("plugin.frontend.nav.order")
+  return order
+}
+
+function navItem(value: unknown): FrontendNavItem {
+  const source = record(value, "plugin.frontend.nav")
+  const navPath = source.path === undefined ? "" : stringValue(source.path, "plugin.frontend.nav.path")
+  if (!NAV_PATH_PATTERN.test(navPath)) invalid("plugin.frontend.nav.path")
+  const icon = nullableString(source.icon, "plugin.frontend.nav.icon")
+  if (icon !== null && !NAV_ICON_PATTERN.test(icon)) invalid("plugin.frontend.nav.icon")
+
+  return {
+    label: parseNavLabel(source.label, "plugin.frontend.nav.label", false),
+    label_zh: parseNavLabel(source.label_zh, "plugin.frontend.nav.label_zh", true),
+    path: navPath,
+    icon,
+    order: parseNavOrder(source.order),
+    section: navSection(source.section),
+  }
+}
+
+function stringList(value: unknown, field: string): string[] {
+  if (value === undefined) return []
+  if (!Array.isArray(value)) invalid(field)
+  return value.map((item) => stringValue(item, field))
 }
 
 function frontend(value: unknown): PluginFrontendMetadata {
   const source = record(value, "plugin.frontend")
-  if (source.category === undefined) return {}
-  if (source.category === null || typeof source.category === "string") {
-    return { category: source.category }
+  const navRaw = source.nav
+  if (navRaw !== undefined && !Array.isArray(navRaw)) invalid("plugin.frontend.nav")
+
+  return {
+    category: nullableString(source.category, "plugin.frontend.category"),
+    ui_mode: uiMode(source.ui_mode),
+    nav: navRaw ? navRaw.map(navItem) : [],
+    provides_themes: stringList(source.provides_themes, "plugin.frontend.provides_themes"),
+    entry_url: nullableString(source.entry_url, "plugin.frontend.entry_url"),
+    style_url: nullableString(source.style_url, "plugin.frontend.style_url"),
   }
-  return invalid("plugin.frontend.category")
 }
 
 function health(value: unknown): PluginHealth {

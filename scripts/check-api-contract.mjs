@@ -16,13 +16,29 @@ const REQUIRED_PLUGIN_FIELDS = [
   "frontend",
   "health",
 ]
+const REQUIRED_FRONTEND_FIELDS = [
+  "category",
+  "ui_mode",
+  "nav",
+  "provides_themes",
+  "entry_url",
+  "style_url",
+]
+const REQUIRED_NAV_ITEM_FIELDS = ["label", "label_zh", "path", "icon", "order", "section"]
 const ACTIONS = ["restart", "start", "stop"]
+const UI_MODES = ["esm", "none"]
 
 function resolveSchema(document, schema) {
-  const reference = schema?.$ref
-  if (typeof reference !== "string") return schema
-  const name = reference.split("/").at(-1)
-  return name ? document.components?.schemas?.[name] : undefined
+  if (!schema || typeof schema !== "object") return schema
+  const reference = schema.$ref
+  if (typeof reference === "string") {
+    const name = reference.split("/").at(-1)
+    return name ? resolveSchema(document, document.components?.schemas?.[name]) : undefined
+  }
+  if (Array.isArray(schema.allOf) && schema.allOf.length === 1) {
+    return resolveSchema(document, schema.allOf[0])
+  }
+  return schema
 }
 
 function endpointErrors(document) {
@@ -35,10 +51,48 @@ function endpointErrors(document) {
     ["/api/v1/plugins/{plugin_id}/start", "post"],
     ["/api/v1/plugins/{plugin_id}/stop", "post"],
     ["/api/v1/plugins/{plugin_id}/restart", "post"],
+    ["/api/v1/plugins/{plugin_id}/ui/{asset_path}", "get"],
   ]
   return endpoints
     .filter(([route, method]) => document.paths?.[route]?.[method] === undefined)
     .map(([route, method]) => `missing endpoint: ${method.toUpperCase()} ${route}`)
+}
+
+function dependencyErrors(document, pluginView) {
+  const depSchema = resolveSchema(document, pluginView.properties?.dependencies?.items)
+  if (!depSchema?.properties?.optional) {
+    return ["PluginDependency schema must declare optional"]
+  }
+  return []
+}
+
+function frontendErrors(document, pluginView) {
+  const errors = []
+  const frontendSchema = resolveSchema(document, pluginView.properties?.frontend)
+  if (!frontendSchema?.properties) {
+    return ["FrontendView schema is missing"]
+  }
+  for (const field of REQUIRED_FRONTEND_FIELDS) {
+    if (!frontendSchema.properties[field]) {
+      errors.push(`FrontendView missing field: ${field}`)
+    }
+  }
+  const uiModeSchema = resolveSchema(document, frontendSchema.properties.ui_mode)
+  const uiModes = [...(uiModeSchema?.enum ?? [])].sort()
+  if (JSON.stringify(uiModes) !== JSON.stringify(UI_MODES)) {
+    errors.push("FrontendView.ui_mode enum must contain esm and none")
+  }
+  const navItemSchema = resolveSchema(document, frontendSchema.properties.nav?.items)
+  if (!navItemSchema?.properties) {
+    errors.push("FrontendNavItem schema is missing")
+  } else {
+    for (const field of REQUIRED_NAV_ITEM_FIELDS) {
+      if (!navItemSchema.properties[field]) {
+        errors.push(`FrontendNavItem missing field: ${field}`)
+      }
+    }
+  }
+  return errors
 }
 
 export function validateApiContract(document) {
@@ -57,6 +111,9 @@ export function validateApiContract(document) {
   if (JSON.stringify(actualActions) !== JSON.stringify(ACTIONS)) {
     errors.push("PluginAction enum must contain restart, start, and stop")
   }
+
+  errors.push(...dependencyErrors(document, pluginView))
+  errors.push(...frontendErrors(document, pluginView))
   return errors
 }
 

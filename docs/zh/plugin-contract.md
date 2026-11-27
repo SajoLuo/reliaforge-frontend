@@ -13,15 +13,15 @@
 | `api_version` | ReliaForge 插件 API 版本 |
 | `state` | 当前运行状态 |
 | `available_actions` | 后端当前允许的启动、停止或重启按钮 |
-| `dependencies` | 所需插件 ID 和可接受的 SemVer 范围 |
+| `dependencies` | 强依赖或可选依赖（`optional`）的插件 ID 和可接受的 SemVer 范围 |
 | `capabilities` | 供其他插件调用的共享 Python 服务 |
 | `settings_schema` | 来自插件 Python 设置类的配置项 |
-| `frontend` | 用于插件分组的可选分类 |
+| `frontend` | 插件分类、ESM 界面模式（`ui_mode`）、侧边栏导航（`nav`）、主题 ID（`provides_themes`）及计算出的资源地址（`entry_url`、`style_url`） |
 | `health` | 插件报告的健康状态和详细信息 |
 
 插件运行时，健康状态仍可能是降级。摘要会把每个插件归入运行中、降级、已停止或错误中的一类。
 
-控制台不会根据插件状态计算 `available_actions`。插件加载失败、依赖不可用，或有运行中的插件
+控制台不会根据插件状态计算 `available_actions`。插件加载失败、强依赖不可用，或有运行中的插件
 依赖它时，操作列表都可能为空。只读演示中的所有静态插件都使用空操作列表。
 
 客户端生成的标签和错误会翻译。后端返回的数据保持原样，包括插件 ID、名称、说明、能力、

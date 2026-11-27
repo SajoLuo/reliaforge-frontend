@@ -50,7 +50,14 @@ function plugin(id: string): PluginView {
     dependencies: [],
     capabilities: [`${id}.service`],
     settings_schema: { type: "object" },
-    frontend: { category: "Tests" },
+    frontend: {
+      category: "Tests",
+      ui_mode: "none",
+      nav: [],
+      provides_themes: [],
+      entry_url: null,
+      style_url: null,
+    },
     health: { status: "healthy", details: null },
   }
 }

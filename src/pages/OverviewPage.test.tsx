@@ -1,9 +1,11 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { getPlatformStatus, listPlugins } from "@/api/plugins"
 import { OverviewPage } from "@/pages/OverviewPage"
-import type { PlatformStatusResponse } from "@/types/plugin"
+import { PluginRuntimeProvider } from "@/runtime/PluginRuntimeProvider"
+import { ThemeProvider } from "@/theme/ThemeProvider"
+import type { PlatformStatusResponse, PluginView } from "@/types/plugin"
 
 vi.mock("@/api/plugins", () => ({
   listPlugins: vi.fn(),
@@ -50,5 +52,59 @@ describe("OverviewPage", () => {
     expect(screen.getByRole("region", { name: "Backend summary" })).toHaveTextContent("healthy")
     expect(screen.getByTestId("overview-summary")).toHaveTextContent("Needs attention")
     expect(screen.getByTestId("empty-state")).toHaveTextContent("No plugins discovered")
+  })
+
+  it("renders plugin overview widgets below the platform summary", async () => {
+    const widgetPlugin: PluginView = {
+      id: "infra_overview",
+      name: "Infra Overview",
+      version: "1.0.0",
+      description: "Infra",
+      api_version: "v1",
+      state: "running",
+      available_actions: [],
+      dependencies: [],
+      capabilities: [],
+      settings_schema: {},
+      frontend: {
+        category: "Infrastructure",
+        ui_mode: "esm",
+        nav: [],
+        provides_themes: [],
+        entry_url: "/api/v1/plugins/infra_overview/ui/entry.js?v=1",
+        style_url: null,
+      },
+      health: { status: "healthy", details: null },
+    }
+    vi.mocked(getPlatformStatus).mockResolvedValue(status)
+    vi.mocked(listPlugins).mockResolvedValue({ plugins: [widgetPlugin] })
+    const importModule = vi.fn().mockResolvedValue({
+      default: {
+        apiVersion: "v1",
+        id: "infra_overview",
+        overviewWidgets: [
+          {
+            id: "infra-summary",
+            title: "Infrastructure Status",
+            span: 2,
+            component: () => <p>Nodes healthy: 3/3</p>,
+          },
+        ],
+      },
+    })
+
+    render(
+      <MemoryRouter>
+        <ThemeProvider>
+          <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
+            <OverviewPage />
+          </PluginRuntimeProvider>
+        </ThemeProvider>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => expect(screen.getByTestId("overview-plugin-widgets")).toBeInTheDocument())
+    expect(screen.getByText("Infrastructure Status")).toBeInTheDocument()
+    expect(screen.getByText("Nodes healthy: 3/3")).toBeInTheDocument()
   })
 })

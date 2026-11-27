@@ -48,7 +48,14 @@ describe("PluginsPage", () => {
       dependencies: [],
       capabilities: ["demo.greeting"],
       settings_schema: {},
-      frontend: { category: "Examples" },
+      frontend: {
+        category: "Examples",
+        ui_mode: "none",
+        nav: [],
+        provides_themes: [],
+        entry_url: null,
+        style_url: null,
+      },
       health: { status: "healthy", details: null },
     }
     const runbook: PluginView = {
@@ -56,7 +63,7 @@ describe("PluginsPage", () => {
       id: "runbook",
       name: "Runbook Preview",
       description: "Read-only preview",
-      dependencies: [{ id: "demo", version: "^1.0.0" }],
+      dependencies: [{ id: "demo", version: "^1.0.0", optional: false }],
       capabilities: ["runbook.preview"],
       available_actions: ["stop", "restart"],
     }

@@ -19,11 +19,12 @@ hooks use the same interfaces in both builds.
 
 ## Routes and languages
 
-The console has four routes:
+The console has five route groups:
 
-- `/` — backend summary;
+- `/` — backend summary and plugin overview widgets;
 - `/plugins` — plugin list;
 - `/plugins/{plugin_id}` — plugin details;
+- `/p/{plugin_id}/*` — dynamic ESM plugin workspace;
 - `/about` — project and setup links.
 
 English uses these routes directly. Simplified Chinese adds `/zh`, such as

@@ -8,8 +8,11 @@ operational workflow obvious before adding decoration.
 
 - Define shared color and surface tokens in `src/styles.css`; expose reusable Tailwind aliases in
   `tailwind.config.ts` instead of repeating literal colors in components.
-- Support light mode and `prefers-color-scheme: dark` through the same tokens. Do not add persistent
-  theme state unless the product explicitly requires a manual theme control.
+- Support light mode and `prefers-color-scheme: dark` through the same tokens. When no theme
+  plugin is registered, keep `"reliaforge"` as the default without displaying a switcher; when two
+  or more themes are registered by active theme plugins, render an opt-in persistent appearance
+  selector (`localStorage`) in the sidebar and automatically fall back to `"reliaforge"` if a
+  selected theme plugin stops or becomes unavailable.
 - Pair `accent` with `accent-ink`. Text and interactive controls must meet WCAG AA contrast in both
   themes (4.5:1 for normal text; 3:1 for large text and UI boundaries).
 - Use the system sans stack. Do not claim or depend on an unavailable brand font.

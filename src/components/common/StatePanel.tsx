@@ -1,22 +1,18 @@
 import { AlertTriangle, LoaderCircle, PackageOpen } from "lucide-react"
+import type { StatePanelProps } from "@reliaforge/plugin-sdk"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
 import { useLocale } from "@/i18n/useLocale"
+import { cn } from "@/lib/utils"
 
-export interface StatePanelProps {
-  kind: "loading" | "empty" | "error"
-  title: string
-  description: string
-  onRetry?: () => Promise<void>
-}
+export type { StatePanelProps }
 
-export function StatePanel({ kind, title, description, onRetry }: StatePanelProps) {
+export function StatePanel({ kind, title, description, onRetry, action, className }: StatePanelProps) {
   const { t } = useLocale()
   const Icon = kind === "loading" ? LoaderCircle : kind === "error" ? AlertTriangle : PackageOpen
   return (
     <Card
-      className="flex min-h-[18rem] flex-col items-center justify-center px-6 py-12 text-center"
+      className={cn("flex min-h-[18rem] flex-col items-center justify-center px-6 py-12 text-center", className)}
       data-testid={`${kind}-state`}
       role={kind === "error" ? "alert" : "status"}
     >
@@ -25,10 +21,15 @@ export function StatePanel({ kind, title, description, onRetry }: StatePanelProp
       </span>
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
       <p className="mt-2 max-w-md text-sm leading-6 text-muted">{description}</p>
-      {onRetry ? (
-        <Button className="mt-5" variant="secondary" onClick={() => void onRetry()}>
-          {t("common.retry")}
-        </Button>
+      {onRetry || action ? (
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          {onRetry ? (
+            <Button variant="secondary" onClick={() => void onRetry()}>
+              {t("common.retry")}
+            </Button>
+          ) : null}
+          {action}
+        </div>
       ) : null}
     </Card>
   )

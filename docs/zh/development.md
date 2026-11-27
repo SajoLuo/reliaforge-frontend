@@ -19,11 +19,12 @@ Page -> hook -> API function -> HTTP client -> backend
 
 ## 路由与语言
 
-控制台有四个路由：
+控制台有五类路由：
 
-- `/` — 后端摘要；
+- `/` — 后端摘要与插件概览挂件；
 - `/plugins` — 插件列表；
 - `/plugins/{plugin_id}` — 插件详情；
+- `/p/{plugin_id}/*` — 动态 ESM 插件工作台；
 - `/about` — 项目和安装链接。
 
 英文直接使用这些路由，简体中文增加 `/zh`，例如 `/zh/plugins/{plugin_id}`。正常构建使用

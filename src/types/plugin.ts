@@ -16,8 +16,26 @@ export interface JsonObject {
   [key: string]: JsonValue
 }
 
+export type FrontendNavSection = "workspace" | "operations" | "platform"
+
+export type FrontendUiMode = "none" | "esm"
+
+export interface FrontendNavItem {
+  label: string
+  label_zh: string | null
+  path: string
+  icon: string | null
+  order: number
+  section: FrontendNavSection
+}
+
 export interface PluginFrontendMetadata {
-  category?: string | null
+  category: string | null
+  ui_mode: FrontendUiMode
+  nav: FrontendNavItem[]
+  provides_themes: string[]
+  entry_url: string | null
+  style_url: string | null
 }
 
 export interface PluginHealth {
@@ -28,6 +46,7 @@ export interface PluginHealth {
 export interface PluginDependency {
   id: string
   version: string
+  optional: boolean
 }
 
 export interface PluginView {

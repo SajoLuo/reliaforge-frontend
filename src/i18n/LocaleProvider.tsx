@@ -10,6 +10,7 @@ function pageTitleKey(pathname: string): MessageKey {
   if (path === "/about") return "meta.about"
   if (path === "/plugins") return "meta.plugins"
   if (path.startsWith("/plugins/")) return "meta.plugin"
+  if (path === "/p" || path.startsWith("/p/")) return "meta.workspace"
   return "meta.overview"
 }
 

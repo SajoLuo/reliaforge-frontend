@@ -1,0 +1,45 @@
+{
+  "name": "@reliaforge/plugin-sdk",
+  "version": "1.0.0",
+  "description": "Shared runtime SDK, TypeScript contracts, Tailwind preset, and Vite build plugin for ReliaForge console plugins.",
+  "license": "MIT",
+  "author": "Sajo Luo",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./tailwind-preset": {
+      "types": "./tailwind-preset.d.cts",
+      "default": "./tailwind-preset.cjs"
+    },
+    "./tailwind-preset.cjs": {
+      "types": "./tailwind-preset.d.cts",
+      "default": "./tailwind-preset.cjs"
+    },
+    "./vite": {
+      "types": "./vite-plugin.d.mts",
+      "default": "./vite-plugin.mjs"
+    },
+    "./vite-plugin.mjs": {
+      "types": "./vite-plugin.d.mts",
+      "default": "./vite-plugin.mjs"
+    }
+  },
+  "files": [
+    "src",
+    "tailwind-preset.cjs",
+    "tailwind-preset.d.cts",
+    "vite-plugin.mjs",
+    "vite-plugin.d.mts",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-router-dom": "^7.0.0"
+  }
+}

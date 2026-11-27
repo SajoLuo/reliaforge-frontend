@@ -21,10 +21,17 @@ const plugin: PluginView = {
   api_version: "v1",
   state: "running",
   available_actions: ["stop", "restart"],
-  dependencies: [{ id: "demo", version: "^1.0.0" }],
+  dependencies: [{ id: "demo", version: "^1.0.0", optional: false }],
   capabilities: ["runbook.preview"],
   settings_schema: { type: "object", maxItems: 10 },
-  frontend: { category: "Examples" },
+  frontend: {
+    category: "Examples",
+    ui_mode: "none",
+    nav: [],
+    provides_themes: [],
+    entry_url: null,
+    style_url: null,
+  },
   health: { status: "healthy", details: null },
 }
 
@@ -135,5 +142,21 @@ describe("PluginDetailPage", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Stop" }))
 
     expect(runPluginAction).not.toHaveBeenCalled()
+  })
+
+  it("shows optional dependency badge and workspace link for running ESM plugins", async () => {
+    vi.mocked(getPlugin).mockResolvedValue({
+      ...plugin,
+      dependencies: [{ id: "ops_audit", version: "^1.0.0", optional: true }],
+      frontend: {
+        ...plugin.frontend,
+        ui_mode: "esm",
+        entry_url: "/api/v1/plugins/runbook/ui/entry.js?v=abc",
+      },
+    })
+    renderDetail()
+
+    expect(await screen.findByText("optional")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Open workspace" })).toHaveAttribute("href", "/p/runbook")
   })
 })

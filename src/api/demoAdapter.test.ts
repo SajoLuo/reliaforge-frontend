@@ -9,16 +9,33 @@ describe("demoApi", () => {
     ])
 
     expect(status.plugins).toEqual({
-      total: 2,
-      running: 2,
+      total: 9,
+      running: 9,
       degraded: 0,
       stopped: 0,
       error: 0,
     })
-    expect(catalog.plugins.map((plugin) => plugin.id)).toEqual(["demo", "runbook"])
+    expect(catalog.plugins.map((plugin) => plugin.id)).toEqual([
+      "demo",
+      "runbook",
+      "infra_overview",
+      "proxmox",
+      "kubernetes",
+      "observability",
+      "gitops_argocd",
+      "ops_audit",
+      "homoshell_theme",
+    ])
     expect(catalog.plugins.every((plugin) => plugin.available_actions.length === 0)).toBe(true)
-    expect(catalog.plugins[1].dependencies).toEqual([{ id: "demo", version: "^1.0.0" }])
+    expect(catalog.plugins[1].dependencies).toEqual([
+      { id: "demo", version: "^1.0.0", optional: false },
+    ])
     expect(catalog.plugins[1].health.details).toEqual({ service_running: true })
+    expect(catalog.plugins[2].dependencies.every((dep) => dep.optional)).toBe(true)
+    expect(catalog.plugins[2].frontend.nav[0]).toMatchObject({
+      label: "Infrastructure",
+      section: "workspace",
+    })
   })
 
   it("returns independent objects so consumers cannot mutate the fixture", async () => {
@@ -27,7 +44,7 @@ describe("demoApi", () => {
     first.plugins.push(first.plugins[0])
 
     const second = await demoApi.listPlugins()
-    expect(second.plugins).toHaveLength(2)
+    expect(second.plugins).toHaveLength(9)
     expect(second.plugins[0].settings_schema).not.toHaveProperty("tampered")
   })
 

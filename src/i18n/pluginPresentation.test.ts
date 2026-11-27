@@ -11,10 +11,17 @@ const runbook: PluginView = {
   api_version: "v1",
   state: "running",
   available_actions: [],
-  dependencies: [{ id: "demo", version: "^1.0.0" }],
+  dependencies: [{ id: "demo", version: "^1.0.0", optional: false }],
   capabilities: ["runbook.preview"],
   settings_schema: { type: "object", properties: { title: { type: "string" } } },
-  frontend: { category: "Examples" },
+  frontend: {
+    category: "Examples",
+    ui_mode: "none",
+    nav: [],
+    provides_themes: [],
+    entry_url: null,
+    style_url: null,
+  },
   health: { status: "healthy", details: null },
 }
 

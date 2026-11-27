@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@reliaforge/plugin-sdk": path.resolve(__dirname, "./packages/plugin-sdk/src/index.ts"),
     },
   },
   server: { host: "127.0.0.1", port: 5530 },

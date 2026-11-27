@@ -4,7 +4,10 @@ import { App } from "@/App"
 import { AppErrorBoundary } from "@/components/common/AppErrorBoundary"
 import { LocaleProvider } from "@/i18n/LocaleProvider"
 import { AppRouter } from "@/routing/AppRouter"
+import { installHostBridge } from "@/runtime/hostBridge"
 import "@/styles.css"
+
+installHostBridge()
 
 const rootElement = document.getElementById("root")
 if (rootElement === null) throw new Error("ReliaForge root element is missing")

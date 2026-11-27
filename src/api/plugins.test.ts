@@ -33,10 +33,17 @@ describe("plugin API", () => {
       api_version: "v1",
       state: "running" as const,
       available_actions: ["stop", "restart"],
-      dependencies: [{ id: "provider", version: "^1.0.0" }],
+      dependencies: [{ id: "provider", version: "^1.0.0", optional: false }],
       capabilities: [],
       settings_schema: {},
-      frontend: { category: null },
+      frontend: {
+        category: null,
+        ui_mode: "none",
+        nav: [],
+        provides_themes: [],
+        entry_url: null,
+        style_url: null,
+      },
       health: { status: "healthy", details: null },
     }
     vi.spyOn(api, "get").mockResolvedValue({ data: plugin })

@@ -15,11 +15,12 @@ test("read-only demo explores the real console without API traffic or lifecycle 
   await page.goto("./#/")
   await expect(page).toHaveURL(/#\/$/)
   await expect(page.getByTestId("demo-notice")).toContainText("Read-only demo")
-  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible()
-  await expect(page.getByTestId("plugin-card")).toHaveCount(2)
+  await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible()
+  await expect(page.getByTestId("plugin-card")).toHaveCount(3)
 
   await page.getByRole("link", { name: "Plugins", exact: true }).click()
   await expect(page).toHaveURL(/#\/plugins$/)
+  await expect(page.getByTestId("plugin-card")).toHaveCount(9)
   const runbookCard = page.getByTestId("plugin-card").filter({ hasText: "Runbook Preview" })
   await runbookCard.getByRole("link", { name: "Inspect Runbook Preview" }).click()
 
@@ -36,6 +37,10 @@ test("read-only demo explores the real console without API traffic or lifecycle 
   await expect(page).toHaveURL(/#\/plugins\/runbook$/)
   await expect(page.getByRole("heading", { name: "Runbook Preview" })).toBeVisible()
   await expect(page.getByTestId("demo-notice")).toBeVisible()
+
+  await page.getByRole("link", { name: "Kubernetes", exact: true }).click()
+  await expect(page).toHaveURL(/#\/p\/kubernetes$/)
+  await expect(page.getByRole("heading", { name: "Live backend required" })).toBeVisible()
   expect(apiRequests).toEqual([])
 })
 
@@ -85,7 +90,7 @@ test.describe("deterministic locale URLs", () => {
     await expect(page).toHaveURL(/#\/$/)
     await expect(page.locator("html")).toHaveAttribute("lang", "en")
     await expect(page).toHaveTitle("ReliaForge · Overview")
-    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible()
     expect(apiRequests).toEqual([])
   })
 })
@@ -100,7 +105,7 @@ test("read-only demo keeps its notice and navigation usable on mobile", async ({
   await expect(page.getByRole("button", { name: "关闭导航" })).toBeFocused()
   await page.getByRole("link", { name: "插件", exact: true }).click()
   await expect(page).toHaveURL(/#\/zh\/plugins$/)
-  await expect(page.getByTestId("plugin-card")).toHaveCount(2)
+  await expect(page.getByTestId("plugin-card")).toHaveCount(9)
   await expect(page.getByRole("link", { name: "查看 运行手册预览" })).toBeVisible()
   expect(apiRequests).toEqual([])
 })

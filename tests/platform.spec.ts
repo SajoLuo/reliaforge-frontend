@@ -38,3 +38,75 @@ test("lifecycle controls follow the backend action contract after a transition",
   await expect(page.getByRole("button", { name: "Stop" })).toHaveCount(0)
   await expect(page.getByText("stopped", { exact: true })).toBeVisible()
 })
+
+test("dynamic ESM plugins load routes, overview widgets, and themes via window.__RELIAFORGE_HOST__", async ({ page }, testInfo) => {
+  const esmPlugins = [
+    {
+      id: "sample_esm",
+      name: "Sample ESM",
+      version: "1.0.0",
+      description: "Runtime ESM plugin",
+      api_version: "v1",
+      state: "running",
+      available_actions: [],
+      dependencies: [],
+      capabilities: ["sample.ui"],
+      settings_schema: {},
+      frontend: {
+        category: "Infrastructure",
+        ui_mode: "esm",
+        nav: [{ label: "Sample Ops", label_zh: "示例运维", path: "", icon: "server", order: 10, section: "workspace" }],
+        provides_themes: ["retro-emerald"],
+        entry_url: "/api/v1/plugins/sample_esm/ui/entry.js?v=test01",
+        style_url: "/api/v1/plugins/sample_esm/ui/style.css?v=test01",
+      },
+      health: { status: "healthy", details: null },
+    },
+  ]
+
+  const sampleBundle = `
+    const bridge = window.__RELIAFORGE_HOST__;
+    const { createElement } = bridge.modules.react;
+    const { Card, CardContent, PageHeader } = bridge.modules["@reliaforge/plugin-sdk"];
+    function WorkspacePage({ pluginId }) {
+      return createElement(Card, null, createElement(CardContent, null, createElement(PageHeader, {
+        title: "Dynamic ESM Workspace",
+        description: "Mounted plugin " + pluginId,
+      })));
+    }
+    function StatusWidget({ pluginId }) {
+      return createElement("p", null, "Widget ready for " + pluginId);
+    }
+    export default {
+      apiVersion: "v1",
+      id: "sample_esm",
+      routes: [{ path: "", element: WorkspacePage }],
+      overviewWidgets: [{ id: "status", title: "Sample Status", span: 2, component: StatusWidget }],
+      themes: [{ id: "retro-emerald", label: "Retro Emerald", cssClass: "theme-retro-emerald", tokens: { canvas: "4 10 8", accent: "0 214 143" } }],
+    };
+  `
+
+  await page.route("**/api/v1/status", (route) =>
+    route.fulfill({ json: { status: "healthy", version: "0.2.0", plugins: { total: 1, running: 1, degraded: 0, stopped: 0, error: 0 } } }),
+  )
+  await page.route("**/api/v1/plugins", (route) => route.fulfill({ json: { plugins: esmPlugins } }))
+  await page.route("**/api/v1/plugins/sample_esm", (route) => route.fulfill({ json: esmPlugins[0] }))
+  await page.route("**/api/v1/plugins/sample_esm/ui/entry.js**", (route) =>
+    route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: sampleBundle }),
+  )
+  await page.route("**/api/v1/plugins/sample_esm/ui/style.css**", (route) =>
+    route.fulfill({ status: 200, contentType: "text/css; charset=utf-8", body: '[data-rf-plugin="sample_esm"] { border-radius: 0; }' }),
+  )
+
+  await page.goto("/")
+  await expect(page.getByTestId("overview-plugin-widgets")).toContainText("Widget ready for sample_esm")
+  if (testInfo.project.name === "mobile-chromium") {
+    await page.getByRole("button", { name: "Open navigation" }).click()
+  }
+  await page.getByLabel("Appearance").selectOption("retro-emerald")
+  await expect(page.locator("html")).toHaveAttribute("data-console-theme", "retro-emerald")
+
+  await page.getByRole("link", { name: "Sample Ops", exact: true }).click()
+  await expect(page.getByRole("heading", { name: "Dynamic ESM Workspace" })).toBeVisible()
+  await expect(page.locator('[data-rf-plugin="sample_esm"]')).toBeVisible()
+})
