@@ -31,6 +31,7 @@
   },
   "files": [
     "src",
+    "postcss-layers.mjs",
     "tailwind-preset.cjs",
     "tailwind-preset.d.cts",
     "vite-plugin.mjs",

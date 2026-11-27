@@ -27,6 +27,16 @@ export interface ReliaForgeViteBuildPlugin {
   load: (id: string) => string | null
 }
 
+export interface ReliaForgeViteCssLayerPlugin {
+  name: string
+  apply: "build"
+  enforce: "post"
+  generateBundle: (
+    options: unknown,
+    bundle: Record<string, { type: string; fileName: string; source?: string | Uint8Array }>,
+  ) => Promise<void>
+}
+
 export declare function reliaforgePluginBuild(
   options: ReliaForgePluginBuildOptions,
-): ReliaForgeViteBuildPlugin
+): [ReliaForgeViteBuildPlugin, ReliaForgeViteCssLayerPlugin]

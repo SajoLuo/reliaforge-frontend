@@ -1,3 +1,5 @@
+import postcss from "postcss"
+import { reliaforgeBreakpointLayers } from "./postcss-layers.mjs"
 import { HOST_MODULE_EXPORTS, SDK_VERSION } from "./src/host-exports.mjs"
 
 const VIRTUAL_PREFIX = "\0reliaforge-host:"
@@ -35,39 +37,55 @@ export function reliaforgePluginBuild({ pluginId, entry, outDir = "dist" }) {
     throw new Error("reliaforgePluginBuild requires a non-empty string entry path.")
   }
 
-  return {
-    name: "reliaforge-plugin-build",
-    apply: "build",
-    enforce: "pre",
-    config() {
-      return {
-        define: {
-          "process.env.NODE_ENV": '"production"',
-        },
-        build: {
-          outDir,
-          emptyOutDir: true,
-          copyPublicDir: false,
-          cssCodeSplit: false,
-          lib: {
-            entry,
-            formats: ["es"],
-            fileName: () => "entry.js",
-            cssFileName: "style",
+  return [
+    {
+      name: "reliaforge-plugin-build",
+      apply: "build",
+      enforce: "pre",
+      config() {
+        return {
+          define: {
+            "process.env.NODE_ENV": '"production"',
           },
-        },
-      }
+          build: {
+            outDir,
+            emptyOutDir: true,
+            copyPublicDir: false,
+            cssCodeSplit: false,
+            lib: {
+              entry,
+              formats: ["es"],
+              fileName: () => "entry.js",
+              cssFileName: "style",
+            },
+          },
+        }
+      },
+      resolveId(source) {
+        if (Object.prototype.hasOwnProperty.call(HOST_MODULE_EXPORTS, source)) {
+          return `${VIRTUAL_PREFIX}${source}`
+        }
+        return null
+      },
+      load(id) {
+        if (!id.startsWith(VIRTUAL_PREFIX)) return null
+        const moduleId = id.slice(VIRTUAL_PREFIX.length)
+        return createHostShim(moduleId, pluginId)
+      },
     },
-    resolveId(source) {
-      if (Object.prototype.hasOwnProperty.call(HOST_MODULE_EXPORTS, source)) {
-        return `${VIRTUAL_PREFIX}${source}`
-      }
-      return null
+    {
+      name: "reliaforge-plugin-css-layers",
+      apply: "build",
+      enforce: "post",
+      async generateBundle(_, bundle) {
+        for (const item of Object.values(bundle)) {
+          if (item.type === "asset" && item.fileName.endsWith(".css")) {
+            const raw = typeof item.source === "string" ? item.source : Buffer.from(item.source).toString("utf8")
+            const processed = await postcss([reliaforgeBreakpointLayers()]).process(raw, { from: undefined })
+            item.source = processed.css
+          }
+        }
+      },
     },
-    load(id) {
-      if (!id.startsWith(VIRTUAL_PREFIX)) return null
-      const moduleId = id.slice(VIRTUAL_PREFIX.length)
-      return createHostShim(moduleId, pluginId)
-    },
-  }
+  ]
 }
