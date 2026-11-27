@@ -1,6 +1,19 @@
-import postcss from "postcss"
+import { createRequire } from "node:module"
+import path from "node:path"
 import { reliaforgeBreakpointLayers } from "./postcss-layers.mjs"
 import { HOST_MODULE_EXPORTS, SDK_VERSION } from "./src/host-exports.mjs"
+
+function loadPostcss() {
+  for (const base of [import.meta.url, path.resolve(process.cwd(), "package.json")]) {
+    try {
+      const mod = createRequire(base)("postcss")
+      return mod.default ?? mod
+    } catch {
+      // Try next resolution root (handles symlinked file: SDK workspaces in Docker builds)
+    }
+  }
+  throw new Error("Could not resolve 'postcss' from @reliaforge/plugin-sdk or the plugin workspace.")
+}
 
 const VIRTUAL_PREFIX = "\0reliaforge-host:"
 
@@ -78,6 +91,7 @@ export function reliaforgePluginBuild({ pluginId, entry, outDir = "dist" }) {
       apply: "build",
       enforce: "post",
       async generateBundle(_, bundle) {
+        const postcss = loadPostcss()
         for (const item of Object.values(bundle)) {
           if (item.type === "asset" && item.fileName.endsWith(".css")) {
             const raw = typeof item.source === "string" ? item.source : Buffer.from(item.source).toString("utf8")
