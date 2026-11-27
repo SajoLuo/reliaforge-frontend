@@ -111,7 +111,7 @@ describe("LogViewer", () => {
     expect(source.closed).toBe(true)
   })
 
-  it("highlights log levels, deduplicates consecutive and inline timestamps, and disables copy when clipboard is absent", () => {
+  it("highlights log levels, preserves consistent timestamps without inline duplicates, and disables copy when clipboard is absent", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined })
     render(
       <LogViewer
@@ -127,9 +127,10 @@ describe("LogViewer", () => {
     expect(screen.getByText("connection failed")).toHaveClass("text-danger-ink")
     expect(screen.getByText("[WARN]")).toHaveClass("text-warning-ink")
     expect(screen.getByText("[INFO]")).toHaveClass("text-info-ink")
-    const repeatedTimestamps = screen.getAllByText("12:00:00Z")
-    expect(repeatedTimestamps[0]).not.toHaveClass("opacity-0")
-    expect(repeatedTimestamps[1]).toHaveClass("opacity-0")
+    const timestamps = screen.getAllByText("12:00:00Z")
+    expect(timestamps).toHaveLength(2)
+    expect(timestamps[0]).not.toHaveClass("opacity-0")
+    expect(timestamps[1]).not.toHaveClass("opacity-0")
     expect(screen.getByRole("button", { name: "Copy" })).toBeDisabled()
   })
 })

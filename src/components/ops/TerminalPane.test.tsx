@@ -94,7 +94,7 @@ describe("TerminalPane", () => {
     const connection = { wsUrl: "/plugins/kubernetes/ws/pods/default/web/exec", onExit }
 
     const { rerender, unmount } = render(
-      <TerminalPane title="Pod Shell" connection={connection} />,
+      <TerminalPane title="Pod Shell" connection={connection} className="h-[calc(100vh-11.5rem)] min-h-[480px]" />,
     )
 
     // Allow React.lazy TerminalPaneImpl import to resolve under fake timers.
@@ -103,6 +103,7 @@ describe("TerminalPane", () => {
     })
 
     expect(screen.getByText("Pod Shell")).toBeInTheDocument()
+    expect(screen.getByTestId("terminal-pane")).toHaveClass("flex", "flex-col", "min-h-[480px]")
     const socket = MockWebSocket.instances[0]
     expect(socket.url).toMatch(/^wss?:\/\/.*\/api\/v1\/plugins\/kubernetes\/ws\/pods\/default\/web\/exec$/)
     expect(socket.binaryType).toBe("arraybuffer")

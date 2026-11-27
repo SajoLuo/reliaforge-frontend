@@ -41,8 +41,11 @@ describe("Status, RelativeTime, StatGrid, and Sparkline", () => {
     expect(screen.getByText("已同步").parentElement).toHaveClass("rounded", "bg-success-soft")
   })
 
-  it("formats relative timestamps in zh/en and exposes absolute local tooltip", () => {
+  it("formats relative timestamps in zh/en, clamps future clock skew, and exposes absolute local tooltip", () => {
     const base = new Date("2026-11-28T02:14:00Z").getTime()
+    expect(formatRelativeTime(new Date(base + 12_000), base, "zh")).toBe("刚刚")
+    expect(formatRelativeTime(new Date(base + 120_000), base, "en")).toBe("just now")
+    expect(formatRelativeTime(new Date(base), base, "zh")).toBe("刚刚")
     expect(formatRelativeTime(new Date(base - 12_000), base, "zh")).toBe("12 秒前")
     expect(formatRelativeTime(new Date(base - 180_000), base, "zh")).toBe("3 分钟前")
     expect(formatRelativeTime(new Date(base - 7_200_000), base, "zh")).toBe("2 小时前")

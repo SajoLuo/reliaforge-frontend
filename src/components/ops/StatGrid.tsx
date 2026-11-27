@@ -33,7 +33,7 @@ export function StatTile({
   return (
     <div
       className={cn(
-        "flex min-w-[13rem] flex-1 basis-[13rem] flex-col justify-between gap-2 rounded-lg border border-line bg-panel px-4 py-3 shadow-panel",
+        "flex min-w-[13rem] flex-1 basis-[13rem] flex-col gap-1.5 rounded-lg border border-line bg-panel px-4 py-3 shadow-panel",
         className,
       )}
       {...props}

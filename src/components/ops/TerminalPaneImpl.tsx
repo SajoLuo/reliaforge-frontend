@@ -216,7 +216,7 @@ function TerminalSession({
       fontSize: 13,
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
       convertEol: false,
-      theme: { background: "#0b110e", foreground: "#d6f6e6" },
+      theme: { background: "#0f1115", foreground: "#d6f6e6" },
     })
     const fitAddon = new FitAddon()
     const webLinksAddon = new WebLinksAddon()
@@ -280,13 +280,16 @@ function TerminalSession({
   }, [wsUrl])
 
   return (
-    <section className={cn("overflow-hidden rounded-lg border bg-panel", className)} data-testid="terminal-pane">
+    <section
+      className={cn("flex flex-col overflow-hidden rounded-lg border border-line bg-panel shadow-panel", className)}
+      data-testid="terminal-pane"
+    >
       <TerminalHeader title={title} status={status} exitCode={exitCode} errorReason={errorReason} />
-      <div className="bg-inverse p-2">
+      <div className="flex min-h-0 flex-1 flex-col bg-inverse p-2">
         <div
           ref={containerRef}
-          className="w-full overflow-hidden"
-          style={{ height: viewportHeight }}
+          className="h-full min-h-0 w-full flex-1 overflow-hidden"
+          style={{ minHeight: viewportHeight }}
         />
       </div>
     </section>
@@ -302,10 +305,13 @@ export default function TerminalPaneImpl({
   const viewportHeight = typeof minHeight === "number" ? `${minHeight}px` : minHeight
   if (!connection) {
     return (
-      <section className={cn("overflow-hidden rounded-lg border bg-panel", className)} data-testid="terminal-pane">
+      <section
+        className={cn("flex flex-col overflow-hidden rounded-lg border border-line bg-panel shadow-panel", className)}
+        data-testid="terminal-pane"
+      >
         <TerminalHeader title={title} status="idle" exitCode={null} errorReason={null} />
-        <div className="bg-inverse p-2">
-          <div className="w-full overflow-hidden" style={{ height: viewportHeight }} />
+        <div className="flex min-h-0 flex-1 flex-col bg-inverse p-2">
+          <div className="h-full min-h-0 w-full flex-1 overflow-hidden" style={{ minHeight: viewportHeight }} />
         </div>
       </section>
     )

@@ -207,7 +207,7 @@ describe("AppShell dynamic plugin navigation without footer bloat", () => {
     expect(screen.getByRole("link", { name: "平台概览" })).toHaveAttribute("href", "/platform")
     expect(screen.getByRole("link", { name: "系统信息" })).toHaveAttribute("href", "/p/platform_guide")
     expect(container.querySelector('[data-status="stopped"]')).toBeInTheDocument()
-    expect(container.querySelector('[data-status="healthy"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-status="healthy"]')).not.toBeInTheDocument()
     expect(screen.queryByTestId("appearance-switcher")).not.toBeInTheDocument()
     expect(screen.getByText("v0.1.0")).toBeInTheDocument()
   })

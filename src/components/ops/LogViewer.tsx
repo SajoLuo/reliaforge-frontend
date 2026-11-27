@@ -243,13 +243,11 @@ function LogToolbar({
 function LogLineRow({
   line,
   displayTimestamp,
-  repeatedTimestamp,
   showTimestamps,
   wrapLines,
 }: {
   line: LogLine
   displayTimestamp: string
-  repeatedTimestamp: boolean
   showTimestamps: boolean
   wrapLines: boolean
 }) {
@@ -266,11 +264,7 @@ function LogLineRow({
       )}
     >
       {showTimestamps && displayTimestamp ? (
-        <span
-          title={line.timestamp}
-          aria-hidden={repeatedTimestamp || undefined}
-          className={cn("mr-2 text-muted", repeatedTimestamp && "select-none opacity-0")}
-        >
+        <span title={line.timestamp} className="mr-2 shrink-0 text-muted/75">
           {displayTimestamp}
         </span>
       ) : null}
@@ -297,7 +291,6 @@ function LogViewport({
   wrapLines: boolean
 }) {
   const { t } = useLocale()
-  const renderedTimestamps = lines.map((line) => formatDisplayTimestamp(line.timestamp))
 
   return (
     <div
@@ -312,20 +305,15 @@ function LogViewport({
       ) : lines.length === 0 ? (
         <p className="text-muted">{emptyMessage ?? t("ops.logs.empty")}</p>
       ) : (
-        lines.map((line, index) => {
-          const displayTs = renderedTimestamps[index]
-          const repeated = Boolean(displayTs) && index > 0 && renderedTimestamps[index - 1] === displayTs
-          return (
-            <LogLineRow
-              key={line.id ?? `${index}-${line.timestamp ?? ""}`}
-              line={line}
-              displayTimestamp={displayTs}
-              repeatedTimestamp={repeated}
-              showTimestamps={showTimestamps}
-              wrapLines={wrapLines}
-            />
-          )
-        })
+        lines.map((line, index) => (
+          <LogLineRow
+            key={line.id ?? `${index}-${line.timestamp ?? ""}`}
+            line={line}
+            displayTimestamp={formatDisplayTimestamp(line.timestamp)}
+            showTimestamps={showTimestamps}
+            wrapLines={wrapLines}
+          />
+        ))
       )}
     </div>
   )

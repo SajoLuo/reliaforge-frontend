@@ -10,8 +10,7 @@ function formatCalendarTime(date: Date): string {
 
 function formatPastDuration(diffSec: number, locale: Locale): string {
   if (diffSec < 60) {
-    const seconds = Math.max(0, diffSec)
-    return locale === "zh" ? `${seconds} 秒前` : `${seconds}s ago`
+    return locale === "zh" ? `${diffSec} 秒前` : `${diffSec}s ago`
   }
   const minutes = Math.floor(diffSec / 60)
   if (minutes < 60) {
@@ -24,25 +23,14 @@ function formatPastDuration(diffSec: number, locale: Locale): string {
   return ""
 }
 
-function formatFutureDuration(aheadSec: number, locale: Locale): string {
-  if (aheadSec < 60) {
-    return locale === "zh" ? `${aheadSec} 秒后` : `in ${aheadSec}s`
-  }
-  const minutes = Math.floor(aheadSec / 60)
-  if (minutes < 60) {
-    return locale === "zh" ? `${minutes} 分钟后` : `in ${minutes}m`
-  }
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) {
-    return locale === "zh" ? `${hours} 小时后` : `in ${hours}h`
-  }
-  return ""
-}
-
 export function formatRelativeTime(date: Date, nowMs: number, locale: Locale): string {
-  const diffSec = Math.floor((nowMs - date.getTime()) / 1000)
-  if (diffSec < -5) {
-    return formatFutureDuration(-diffSec, locale) || formatCalendarTime(date)
+  const diffMs = nowMs - date.getTime()
+  if (diffMs <= 0) {
+    return locale === "zh" ? "刚刚" : "just now"
+  }
+  const diffSec = Math.floor(diffMs / 1000)
+  if (diffSec === 0) {
+    return locale === "zh" ? "刚刚" : "just now"
   }
   return formatPastDuration(diffSec, locale) || formatCalendarTime(date)
 }

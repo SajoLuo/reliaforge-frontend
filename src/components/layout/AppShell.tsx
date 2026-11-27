@@ -132,9 +132,9 @@ function collectNavEntries(
   return entries.sort((a, b) => a.order - b.order || a.key.localeCompare(b.key))
 }
 
-function pluginNavStatusDot(plugin: PluginView): { tone: string; status: string; labelKey: MessageKey } {
+function pluginNavStatusDot(plugin: PluginView): { tone: string; status: string; labelKey: MessageKey } | null {
   if (plugin.state === "running" && plugin.health.status === "healthy") {
-    return { tone: "bg-success", status: "healthy", labelKey: "health.healthy" }
+    return null
   }
   if (plugin.state === "error" || plugin.health.status === "error") {
     return { tone: "bg-danger", status: "error", labelKey: "state.error" }
@@ -157,7 +157,7 @@ function SidebarNavRow({
   label: string
   icon: LucideIcon
   end: boolean
-  indicator?: { tone: string; status: string; labelKey: MessageKey }
+  indicator?: { tone: string; status: string; labelKey: MessageKey } | null
   onNavigate: () => void
 }) {
   const { t } = useLocale()
