@@ -7,7 +7,7 @@ ReliaForge 是托管 Python 服务的插件式运维平台。本仓库的 React 
 配置项和当前可用的启停操作。使用插件的业务服务时，调用它自己的 API，或使用作者提供的界面。
 
 - [项目文档](https://reliaforge.dev/zh/)
-- [只读在线演示](https://demo.reliaforge.dev/#/zh/)
+- [只读在线演示](https://demo.reliaforge.dev/)
 
 ## 本地运行
 
@@ -29,7 +29,7 @@ npm run dev
 
 ## 在线演示
 
-[在线演示](https://demo.reliaforge.dev/#/zh/)使用与正常构建相同的页面和响应校验，但读取
+[在线演示](https://demo.reliaforge.dev/)使用与正常构建相同的页面和响应校验，但读取
 `demo` 和 `runbook` 插件的静态数据。它没有后端，不发送管理请求，也不显示启动、停止或
 重启按钮。
 
@@ -40,8 +40,7 @@ npm run build:demo
 npm run preview:demo
 ```
 
-英文路由没有语言前缀，演示中的简体中文路由使用 `#/zh/`。切换语言时会保留当前页面和
-查询参数。
+中英文共用无前缀路由，自动跟随浏览器语言（也可通过 `?lang=zh` / `?lang=en` 指定）。
 
 ## API 接口
 

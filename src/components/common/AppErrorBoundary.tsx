@@ -30,12 +30,15 @@ function LocalizedErrorFallback() {
   const { t } = useLocale()
   return (
     <main className="grid min-h-screen place-items-center bg-canvas px-6" role="alert">
-      <div className="max-w-lg rounded-lg border bg-panel p-8 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-danger">{t("error.eyebrow")}</p>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t("error.title")}</h1>
-        <p className="mt-3 text-sm leading-6 text-muted">
-          {t("error.description")}
-        </p>
+      <div className="max-w-md rounded-lg border border-line bg-panel p-6 text-center shadow-panel">
+        <h1 className="text-lg font-semibold text-ink">{t("error.title")}</h1>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-4 inline-flex h-8 items-center justify-center rounded-md border border-line bg-panel px-3 text-xs font-medium text-ink transition-colors hover:bg-neutral-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          {t("common.refresh")}
+        </button>
       </div>
     </main>
   )

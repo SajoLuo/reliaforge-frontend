@@ -1,33 +1,5 @@
 export declare const SDK_VERSION: "1"
 
-export declare const THEME_TOKEN_KEYS: readonly [
-  "canvas",
-  "panel",
-  "ink",
-  "muted",
-  "line",
-  "accent",
-  "accent-ink",
-  "accent-soft",
-  "danger",
-  "danger-button-ink",
-  "danger-soft",
-  "danger-ink",
-  "success-soft",
-  "success-ink",
-  "warning-soft",
-  "warning-ink",
-  "neutral-soft",
-  "neutral-ink",
-  "inverse",
-  "inverse-ink",
-  "inverse-muted",
-  "code-ink",
-  "shadow",
-]
-
-export type ThemeTokenKey = (typeof THEME_TOKEN_KEYS)[number]
-
 export interface HostModuleDescriptor {
   readonly hasDefault: boolean
   readonly exports: readonly string[]

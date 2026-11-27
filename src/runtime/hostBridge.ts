@@ -6,7 +6,6 @@ import * as ReactRouterDomNamespace from "react-router-dom"
 import {
   HOST_MODULE_EXPORTS,
   SDK_VERSION,
-  THEME_TOKEN_KEYS,
   type HostModuleName,
   type ReliaForgeHostBridge,
 } from "@reliaforge/plugin-sdk"
@@ -15,6 +14,12 @@ import { StatePanel } from "@/components/common/StatePanel"
 import { ConfirmActionDialog } from "@/components/ops/ConfirmActionDialog"
 import { DataTable } from "@/components/ops/DataTable"
 import { LogViewer } from "@/components/ops/LogViewer"
+import { RelativeTime } from "@/components/ops/RelativeTime"
+import { RowActions } from "@/components/ops/RowActions"
+import { Sheet } from "@/components/ops/Sheet"
+import { Sparkline } from "@/components/ops/Sparkline"
+import { StatGrid, StatTile } from "@/components/ops/StatGrid"
+import { Status, StatusBadge, StatusDot } from "@/components/ops/Status"
 import { TerminalPane } from "@/components/ops/TerminalPane"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,7 +47,6 @@ export function buildHostBridge(): ReliaForgeHostBridge {
   const sdkRuntimeExports: Record<string, unknown> = {
     SDK_VERSION,
     HOST_MODULE_EXPORTS,
-    THEME_TOKEN_KEYS,
     Card,
     CardHeader,
     CardContent,
@@ -51,6 +55,15 @@ export function buildHostBridge(): ReliaForgeHostBridge {
     StatePanel,
     PageHeader,
     DataTable,
+    Sheet,
+    RowActions,
+    Status,
+    StatusBadge,
+    StatusDot,
+    RelativeTime,
+    StatGrid,
+    StatTile,
+    Sparkline,
     ConfirmActionDialog,
     LogViewer,
     TerminalPane,

@@ -2,7 +2,6 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { listPlugins } from "@/api/plugins"
 import { PluginRuntimeProvider, usePluginRuntime } from "@/runtime/PluginRuntimeProvider"
-import { ThemeProvider, useTheme } from "@/theme/ThemeProvider"
 import type { PluginView } from "@/types/plugin"
 
 vi.mock("@/api/plugins", () => ({
@@ -28,7 +27,7 @@ function esmPlugin(id: string, state: PluginView["state"] = "running"): PluginVi
       category: "Ops",
       ui_mode: "esm",
       nav: [],
-      provides_themes: id === "homoshell_theme" ? ["homoshell-pc98"] : [],
+      provides_themes: [],
       entry_url: `/api/v1/plugins/${id}/ui/entry.js?v=abc123def456`,
       style_url: `/api/v1/plugins/${id}/ui/style.css?v=abc123def456`,
     },
@@ -38,12 +37,10 @@ function esmPlugin(id: string, state: PluginView["state"] = "running"): PluginVi
 
 function Probe() {
   const runtime = usePluginRuntime()
-  const theme = useTheme()
   return (
     <div>
       <span data-testid="loaded">{Object.keys(runtime.loadedPlugins).join(",")}</span>
       <span data-testid="widgets">{runtime.widgets.map((w) => w.id).join(",")}</span>
-      <span data-testid="themes">{theme.themes.map((t) => t.id).join(",")}</span>
       <span data-testid="errors">{JSON.stringify(runtime.errors)}</span>
       <span data-testid="catalog-error">{runtime.catalogError ?? ""}</span>
       <button type="button" onClick={() => void runtime.refresh()}>Refresh</button>
@@ -58,29 +55,22 @@ afterEach(() => {
 })
 
 describe("PluginRuntimeProvider", () => {
-  it("loads running ESM plugins, registers widgets/themes, isolates failures, and cleans up on stop", async () => {
-    const themePlugin = esmPlugin("homoshell_theme", "running")
+  it("loads running ESM plugins, registers widgets, isolates failures, and cleans up on stop", async () => {
+    const proxmoxPlugin = esmPlugin("proxmox", "running")
     const infraPlugin = esmPlugin("infra_overview", "running")
     const brokenPlugin = esmPlugin("broken", "running")
 
     vi.mocked(listPlugins)
-      .mockResolvedValueOnce({ plugins: [themePlugin, infraPlugin, brokenPlugin] })
-      .mockResolvedValueOnce({ plugins: [esmPlugin("homoshell_theme", "stopped"), infraPlugin] })
+      .mockResolvedValueOnce({ plugins: [proxmoxPlugin, infraPlugin, brokenPlugin] })
+      .mockResolvedValueOnce({ plugins: [esmPlugin("proxmox", "stopped"), infraPlugin] })
 
     const importModule = vi.fn(async (url: string) => {
-      if (url.includes("/homoshell_theme/")) {
+      if (url.includes("/proxmox/")) {
         return {
           default: {
             apiVersion: "v1",
-            id: "homoshell_theme",
-            themes: [
-              {
-                id: "homoshell-pc98",
-                label: "HomoShell PC-98",
-                cssClass: "theme-homoshell-pc98",
-                tokens: { canvas: "4 10 8", accent: "0 255 170" },
-              },
-            ],
+            id: "proxmox",
+            routes: [],
           },
         }
       }
@@ -97,27 +87,22 @@ describe("PluginRuntimeProvider", () => {
     })
 
     render(
-      <ThemeProvider>
-        <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
-          <Probe />
-        </PluginRuntimeProvider>
-      </ThemeProvider>,
+      <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
+        <Probe />
+      </PluginRuntimeProvider>,
     )
 
-    await waitFor(() => expect(screen.getByTestId("loaded")).toHaveTextContent("homoshell_theme,infra_overview"))
+    await waitFor(() => expect(screen.getByTestId("loaded")).toHaveTextContent("proxmox,infra_overview"))
     expect(screen.getByTestId("widgets")).toHaveTextContent("health")
-    expect(screen.getByTestId("themes")).toHaveTextContent("reliaforge,homoshell-pc98")
     expect(screen.getByTestId("errors")).toHaveTextContent("Bundle syntax error")
-    expect(document.head.querySelector('link[data-rf-plugin-style="homoshell_theme"]')).not.toBeNull()
+    expect(document.head.querySelector('link[data-rf-plugin-style="proxmox"]')).not.toBeNull()
 
     await act(async () => {
       screen.getByRole("button", { name: "Refresh" }).click()
     })
 
     await waitFor(() => expect(screen.getByTestId("loaded")).toHaveTextContent("infra_overview"))
-    expect(screen.getByTestId("themes")).toHaveTextContent("reliaforge")
-    expect(screen.getByTestId("themes")).not.toHaveTextContent("homoshell-pc98")
-    expect(document.head.querySelector('link[data-rf-plugin-style="homoshell_theme"]')).toBeNull()
+    expect(document.head.querySelector('link[data-rf-plugin-style="proxmox"]')).toBeNull()
   })
 
   it("retries failed plugins with cache-busting query param, reloads style changes, and surfaces catalogError", async () => {
@@ -145,11 +130,9 @@ describe("PluginRuntimeProvider", () => {
       .mockRejectedValueOnce(new Error("Broken v2"))
 
     render(
-      <ThemeProvider>
-        <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
-          <Probe />
-        </PluginRuntimeProvider>
-      </ThemeProvider>,
+      <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
+        <Probe />
+      </PluginRuntimeProvider>,
     )
 
     await waitFor(() => expect(screen.getByTestId("errors")).toHaveTextContent("Temporary 503"))

@@ -43,8 +43,8 @@ npm run build:demo
 npm run preview:demo
 ```
 
-English routes have no language prefix. Simplified Chinese routes use `#/zh/` in the demo. The
-language switch keeps the current page and query string.
+English and Simplified Chinese share clean routes without a language prefix, following browser language
+automatically (or `?lang=zh` / `?lang=en`).
 
 ## API endpoints
 

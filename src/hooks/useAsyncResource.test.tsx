@@ -1,9 +1,14 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { MemoryRouter, useNavigate } from "react-router-dom"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { useAsyncResource } from "@/hooks/useAsyncResource"
 import { LocaleProvider } from "@/i18n/LocaleProvider"
+
+afterEach(() => {
+  window.localStorage.clear()
+  document.documentElement.lang = "en"
+})
 
 interface Deferred<T> {
   promise: Promise<T>
@@ -23,7 +28,7 @@ function deferred<T>(): Deferred<T> {
 
 function ChineseWrapper({ children }: { children: ReactNode }) {
   return (
-    <MemoryRouter initialEntries={["/zh/"]}>
+    <MemoryRouter initialEntries={["/?lang=zh"]}>
       <LocaleProvider>{children}</LocaleProvider>
     </MemoryRouter>
   )
@@ -191,7 +196,7 @@ describe("useAsyncResource", () => {
     }), { wrapper: EnglishWrapper })
     await waitFor(() => expect(loader).toHaveBeenCalledOnce())
 
-    act(() => result.current.navigate("/zh/"))
+    act(() => result.current.navigate("/?lang=zh"))
     await waitFor(() => expect(document.documentElement).toHaveAttribute("lang", "zh-CN"))
     expect(loader).toHaveBeenCalledOnce()
 

@@ -20,7 +20,6 @@ import {
   removePluginStyle,
   type ModuleImporter,
 } from "@/runtime/pluginLoader"
-import { useTheme } from "@/theme/ThemeProvider"
 import type { PluginView } from "@/types/plugin"
 
 export interface RegisteredOverviewWidget extends PluginOverviewWidget {
@@ -83,18 +82,8 @@ interface LoadTargetContext {
   retryAttempt: number
   isCurrentGeneration: () => boolean
   isStillActive: (pluginId: string) => boolean
-  registerThemes: (pluginId: string, definitions: NonNullable<ReliaForgeFrontendPlugin["themes"]>) => void
-  unregisterPluginThemes: (pluginId: string) => void
   nextLoaded: Record<string, LoadedRecord>
   nextErrors: Record<string, string>
-}
-
-function applyLoadedThemes(ctx: LoadTargetContext, mod: ReliaForgeFrontendPlugin) {
-  if (mod.themes?.length) {
-    ctx.registerThemes(ctx.plugin.id, mod.themes)
-  } else {
-    ctx.unregisterPluginThemes(ctx.plugin.id)
-  }
 }
 
 async function loadPluginTarget(ctx: LoadTargetContext): Promise<void> {
@@ -114,19 +103,16 @@ async function loadPluginTarget(ctx: LoadTargetContext): Promise<void> {
     if (!ctx.isCurrentGeneration() || !ctx.isStillActive(plugin.id)) {
       if (!ctx.isStillActive(plugin.id)) {
         removePluginStyle(plugin.id)
-        ctx.unregisterPluginThemes(plugin.id)
       }
       return
     }
     ctx.nextLoaded[plugin.id] = { entryUrl, styleUrl: plugin.frontend.style_url, module: mod }
-    applyLoadedThemes(ctx, mod)
   } catch (err) {
     if (!ctx.isCurrentGeneration()) {
       if (!ctx.isStillActive(plugin.id)) removePluginStyle(plugin.id)
       return
     }
     removePluginStyle(plugin.id)
-    ctx.unregisterPluginThemes(plugin.id)
     ctx.nextErrors[plugin.id] = err instanceof Error ? err.message : "Failed to load plugin UI."
   }
 }
@@ -137,7 +123,6 @@ export function PluginRuntimeProvider({
   apiOrigin,
 }: PluginRuntimeProviderProps) {
   const { t } = useLocale()
-  const { registerThemes, unregisterPluginThemes, markCatalogSettled } = useTheme()
   const [plugins, setPlugins] = useState<PluginView[]>([])
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [catalogError, setCatalogError] = useState<string | null>(null)
@@ -164,7 +149,6 @@ export function PluginRuntimeProvider({
     for (const existingId of Object.keys(loadedRef.current)) {
       if (!activeIds.has(existingId)) {
         removePluginStyle(existingId)
-        unregisterPluginThemes(existingId)
       }
     }
 
@@ -190,7 +174,6 @@ export function PluginRuntimeProvider({
         }
         return retained
       })
-      markCatalogSettled(true)
       return
     }
 
@@ -212,8 +195,6 @@ export function PluginRuntimeProvider({
           retryAttempt,
           isCurrentGeneration: () => generation === generationRef.current,
           isStillActive: (id) => activeIdsRef.current.has(id),
-          registerThemes,
-          unregisterPluginThemes,
           nextLoaded,
           nextErrors,
         })
@@ -232,8 +213,7 @@ export function PluginRuntimeProvider({
     setErrors(nextErrors)
     errorsRef.current = nextErrors
     setLoadingIds([])
-    markCatalogSettled(true)
-  }, [apiOrigin, importModule, markCatalogSettled, registerThemes, unregisterPluginThemes])
+  }, [apiOrigin, importModule])
 
   const refresh = useCallback(async () => {
     const generation = ++generationRef.current
@@ -254,11 +234,10 @@ export function PluginRuntimeProvider({
           permissionDenied: translate("error.permissionDenied"),
         }),
       )
-      markCatalogSettled(true)
     } finally {
       if (generation === generationRef.current) setCatalogLoading(false)
     }
-  }, [markCatalogSettled, syncPlugins])
+  }, [syncPlugins])
 
   useEffect(() => {
     const timer = window.setTimeout(() => void refresh(), 0)

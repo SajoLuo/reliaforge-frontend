@@ -1,5 +1,6 @@
 import { AlertTriangle, ShieldAlert } from "lucide-react"
 import { useEffect, useId, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import type { ActionRiskLevel, ConfirmActionDialogProps, ConfirmActionRequest } from "@reliaforge/plugin-sdk"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -38,7 +39,7 @@ function DialogWarning({ text }: { text?: string }) {
   return (
     <div
       role="note"
-      className="mt-3 flex items-start gap-2.5 rounded-md border border-warning-ink/20 bg-warning-soft px-3.5 py-2.5 text-xs leading-5 text-warning-ink"
+      className="mt-3 flex items-start gap-2.5 rounded-md border border-warning/30 bg-warning-soft px-3.5 py-2.5 text-xs leading-5 text-warning-ink"
     >
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
       <span>{text}</span>
@@ -61,7 +62,7 @@ function DialogWarnings({ request }: { request: ConfirmActionRequest }) {
 function DialogDetails({ details }: { details?: ConfirmActionRequest["details"] }) {
   if (!details || details.length === 0) return null
   return (
-    <dl className="mt-4 space-y-2 rounded-md border bg-canvas p-3 text-xs">
+    <dl className="mt-4 space-y-2 rounded-md border border-line bg-panel-inset p-3 text-xs">
       {details.map((item) => (
         <div key={item.label} className="flex items-center justify-between gap-4">
           <dt className="text-muted">{item.label}</dt>
@@ -104,7 +105,7 @@ function TypedTargetInput({
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={targetValue}
-        className="w-full rounded-md border bg-canvas px-3 py-2 font-mono text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+        className="w-full rounded-md border border-line bg-panel-inset px-3 py-2 font-mono text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
       />
     </div>
   )
@@ -174,6 +175,7 @@ function ConfirmDialogBody({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !pending) {
+        event.stopPropagation()
         onCancel()
         return
       }
@@ -188,7 +190,7 @@ function ConfirmDialogBody({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-inverse/55 p-4"
+      className="fixed inset-0 z-[60] grid place-items-center bg-inverse/55 p-4"
       role="presentation"
       onClick={() => {
         if (!pending) onCancel()
@@ -200,7 +202,9 @@ function ConfirmDialogBody({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="w-full max-w-lg rounded-lg border bg-panel p-6 text-ink shadow-lift"
+        data-rf-overlay="true"
+        data-rf-overlay-level="60"
+        className="w-full max-w-lg rounded-lg border border-line bg-panel p-6 text-ink shadow-lift"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
@@ -247,8 +251,8 @@ export function ConfirmActionDialog({
   onConfirm,
   onCancel,
 }: ConfirmActionDialogProps) {
-  if (!open || !request) return null
-  return (
+  if (!open || !request || typeof document === "undefined") return null
+  return createPortal(
     <ConfirmDialogBody
       key={`${request.title}:${request.targetValue}`}
       request={request}
@@ -256,6 +260,7 @@ export function ConfirmActionDialog({
       error={error}
       onConfirm={onConfirm}
       onCancel={onCancel}
-    />
+    />,
+    document.body,
   )
 }

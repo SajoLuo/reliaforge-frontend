@@ -163,13 +163,12 @@ describe("PluginDetailPage", () => {
 
     vi.mocked(getPlugin).mockResolvedValue({
       ...plugin,
-      id: "homoshell_theme",
+      id: "widget_only",
       frontend: {
         ...plugin.frontend,
         ui_mode: "esm",
         nav: [],
-        provides_themes: ["homoshell-pc98"],
-        entry_url: "/api/v1/plugins/homoshell_theme/ui/entry.js?v=abc",
+        entry_url: "/api/v1/plugins/widget_only/ui/entry.js?v=abc",
       },
     })
     renderDetail()

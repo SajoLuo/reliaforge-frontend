@@ -1,37 +1,35 @@
-import { Navigate, Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { AppShell } from "@/components/layout/AppShell"
-import { useLocale } from "@/i18n/useLocale"
+import { semanticPath } from "@/i18n/locale"
 import { AboutPage } from "@/pages/AboutPage"
 import { OverviewPage } from "@/pages/OverviewPage"
 import { PluginDetailPage } from "@/pages/PluginDetailPage"
 import { PluginsPage } from "@/pages/PluginsPage"
-import { PluginWorkspacePage } from "@/pages/PluginWorkspacePage"
+import { HomePage, PluginWorkspacePage } from "@/pages/PluginWorkspacePage"
 import { PluginRuntimeProvider } from "@/runtime/PluginRuntimeProvider"
-import { ThemeProvider } from "@/theme/ThemeProvider"
 
-const routeDefinitions = [
-  { path: "/", element: <OverviewPage /> },
-  { path: "/plugins", element: <PluginsPage /> },
-  { path: "/plugins/:pluginId", element: <PluginDetailPage /> },
-  { path: "/p/:pluginId/*", element: <PluginWorkspacePage /> },
-  { path: "/about", element: <AboutPage /> },
-] as const
+function LegacyZhRedirect() {
+  const location = useLocation()
+  const target = semanticPath(location.pathname)
+  return <Navigate to={`${target}${location.search}${location.hash}`} replace />
+}
 
 export function App() {
-  const { pathFor } = useLocale()
   return (
-    <ThemeProvider>
-      <PluginRuntimeProvider>
-        <AppShell>
-          <Routes>
-            {routeDefinitions.flatMap(({ path, element }) => [
-              <Route key={path} path={path} element={element} />,
-              <Route key={`/zh${path}`} path={path === "/" ? "/zh/" : `/zh${path}`} element={element} />,
-            ])}
-            <Route path="*" element={<Navigate to={pathFor("/")} replace />} />
-          </Routes>
-        </AppShell>
-      </PluginRuntimeProvider>
-    </ThemeProvider>
+    <PluginRuntimeProvider>
+      <AppShell>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/platform" element={<OverviewPage mode="platform" />} />
+          <Route path="/plugins" element={<PluginsPage />} />
+          <Route path="/plugins/:pluginId" element={<PluginDetailPage />} />
+          <Route path="/p/:pluginId/*" element={<PluginWorkspacePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/zh" element={<LegacyZhRedirect />} />
+          <Route path="/zh/*" element={<LegacyZhRedirect />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AppShell>
+    </PluginRuntimeProvider>
   )
 }

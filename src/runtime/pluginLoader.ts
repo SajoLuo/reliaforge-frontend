@@ -44,20 +44,16 @@ function validateOverviewWidgets(widgets: unknown, pluginId: string): void {
   }
 }
 
-function validateThemes(themes: unknown, pluginId: string): void {
-  if (themes === undefined) return
-  if (!Array.isArray(themes)) {
-    throw new Error(`Plugin "${pluginId}" module themes must be an array.`)
+const META_STRING_FIELDS = ["name", "nameZh", "description", "descriptionZh"] as const
+
+function validateMeta(meta: unknown, pluginId: string): void {
+  if (meta === undefined) return
+  if (!isPlainRecord(meta)) {
+    throw new Error(`Plugin "${pluginId}" module meta must be an object.`)
   }
-  for (const theme of themes) {
-    if (
-      !isPlainRecord(theme)
-      || typeof theme.id !== "string"
-      || typeof theme.label !== "string"
-      || typeof theme.cssClass !== "string"
-      || !isPlainRecord(theme.tokens)
-    ) {
-      throw new Error(`Plugin "${pluginId}" declared an invalid theme definition.`)
+  for (const field of META_STRING_FIELDS) {
+    if (meta[field] !== undefined && typeof meta[field] !== "string") {
+      throw new Error(`Plugin "${pluginId}" module meta.${field} must be a string.`)
     }
   }
 }
@@ -109,9 +105,9 @@ export function validatePluginModule(
     throw new Error(`Plugin module id "${String(candidate.id)}" does not match "${expectedPluginId}".`)
   }
 
+  validateMeta(candidate.meta, expectedPluginId)
   validateRoutes(candidate.routes, expectedPluginId)
   validateOverviewWidgets(candidate.overviewWidgets, expectedPluginId)
-  validateThemes(candidate.themes, expectedPluginId)
   return candidate as unknown as ReliaForgeFrontendPlugin
 }
 

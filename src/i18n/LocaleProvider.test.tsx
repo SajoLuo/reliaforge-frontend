@@ -1,20 +1,19 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { MemoryRouter, useLocation } from "react-router-dom"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
+import { LOCALE_STORAGE_KEY } from "@/i18n/locale"
 import { LocaleProvider } from "@/i18n/LocaleProvider"
 import { useLocale } from "@/i18n/useLocale"
 
 function LocaleHarness() {
   const location = useLocation()
-  const { locale, switchLocale, t } = useLocale()
+  const { locale, pathFor, t } = useLocale()
   return (
     <div>
       <p data-testid="locale">{locale}</p>
       <p data-testid="path">{location.pathname}{location.search}</p>
+      <p data-testid="resolved-path">{pathFor("/plugins/runbook")}</p>
       <p>{t("overview.title")}</p>
-      <button type="button" onClick={() => switchLocale("en")}>English</button>
-      <button type="button" onClick={() => switchLocale("zh")}>中文</button>
     </div>
   )
 }
@@ -29,28 +28,29 @@ function renderLocale(path: string) {
 
 afterEach(() => {
   cleanup()
+  window.localStorage.clear()
   document.documentElement.lang = "en"
+  vi.restoreAllMocks()
 })
 
 describe("LocaleProvider", () => {
-  it("uses the URL as the sole locale truth", async () => {
-    renderLocale("/plugins?from=shared")
+  it("applies ?lang=zh without adding /zh route prefixes", async () => {
+    renderLocale("/plugins/runbook?lang=zh")
 
-    expect(screen.getByTestId("locale")).toHaveTextContent("en")
-    expect(screen.getByTestId("path")).toHaveTextContent("/plugins?from=shared")
-    await waitFor(() => expect(document.documentElement.lang).toBe("en"))
+    expect(screen.getByTestId("locale")).toHaveTextContent("zh")
+    expect(screen.getByTestId("resolved-path")).toHaveTextContent("/plugins/runbook")
+    expect(screen.getByText("总览")).toBeInTheDocument()
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe("zh")
+    await waitFor(() => expect(document.documentElement.lang).toBe("zh-CN"))
+    expect(document.title).toBe("ReliaForge · 插件详情")
   })
 
-  it("preserves the semantic route and query in the switched URL", async () => {
-    const user = userEvent.setup()
-    renderLocale("/plugins/runbook?tab=contract")
+  it("follows browser navigator.languages when no query or stored override exists", async () => {
+    vi.spyOn(navigator, "languages", "get").mockReturnValue(["zh-TW"])
+    renderLocale("/platform")
 
-    await user.click(screen.getByRole("button", { name: "中文" }))
-    expect(screen.getByTestId("path")).toHaveTextContent("/zh/plugins/runbook?tab=contract")
-    expect(screen.getByText("概览")).toBeInTheDocument()
+    expect(screen.getByTestId("locale")).toHaveTextContent("zh")
     await waitFor(() => expect(document.documentElement.lang).toBe("zh-CN"))
-
-    await user.click(screen.getByRole("button", { name: "English" }))
-    expect(screen.getByTestId("path")).toHaveTextContent("/plugins/runbook?tab=contract")
+    expect(document.title).toBe("ReliaForge · 平台")
   })
 })

@@ -13,11 +13,11 @@ export function PluginList({ plugins, className }: PluginListProps) {
 
   return (
     <section
-      className={cn("overflow-hidden rounded-lg border bg-panel", className)}
+      className={cn("overflow-hidden rounded-lg border border-line bg-panel shadow-panel", className)}
       aria-label={t("plugins.listLabel")}
       data-testid="plugin-list"
     >
-      <div className="hidden grid-cols-[minmax(0,1.7fr)_8rem_minmax(0,1fr)_2.5rem] gap-4 border-b bg-canvas/60 px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted md:grid">
+      <div className="hidden grid-cols-[minmax(0,1.7fr)_7.5rem_minmax(0,1fr)_2.25rem] gap-3 border-b border-line bg-panel-inset px-4 py-2 text-xs font-medium text-muted md:grid">
         <span>{t("plugins.columnPlugin")}</span>
         <span>{t("plugins.columnStatus")}</span>
         <span>{t("plugins.columnCapabilities")}</span>

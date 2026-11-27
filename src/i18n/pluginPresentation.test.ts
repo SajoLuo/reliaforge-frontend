@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { pluginPresentation } from "@/i18n/pluginPresentation"
 import { translate } from "@/i18n/messages"
+import { pluginPresentation } from "@/i18n/pluginPresentation"
 import type { PluginView } from "@/types/plugin"
 
 const runbook: PluginView = {
@@ -27,11 +27,11 @@ const runbook: PluginView = {
 
 describe("pluginPresentation", () => {
   it("localizes only display copy while the contract object stays canonical", () => {
-    const localized = pluginPresentation(runbook, (key, values) => translate("zh", key, values))
+    const localized = pluginPresentation(runbook, (key, values) => translate("zh", key, values), { locale: "zh" })
 
     expect(localized).toEqual({
       name: "运行手册预览",
-      description: "使用 demo 插件提供的问候服务生成只读 Runbook 预览。",
+      description: "只读运行手册预览插件。",
       category: "示例",
     })
     expect(runbook).toMatchObject({
@@ -39,6 +39,24 @@ describe("pluginPresentation", () => {
       name: "Runbook Preview",
       capabilities: ["runbook.preview"],
       settings_schema: { properties: { title: { type: "string" } } },
+    })
+  })
+
+  it("supports optional localized plugin meta overrides without altering backend fields", () => {
+    const custom = { ...runbook, id: "proxmox", name: "Proxmox VE", description: "Backend description" }
+    expect(
+      pluginPresentation(custom, (key, values) => translate("zh", key, values), {
+        locale: "zh",
+        meta: {
+          name: "Proxmox",
+          nameZh: "Proxmox 虚拟化",
+          description: "PVE nodes and guests",
+          descriptionZh: "管理 PVE 节点与虚拟机",
+        },
+      }),
+    ).toMatchObject({
+      name: "Proxmox 虚拟化",
+      description: "管理 PVE 节点与虚拟机",
     })
   })
 

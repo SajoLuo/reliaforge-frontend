@@ -20,7 +20,7 @@ test("read-only demo explores the real console without API traffic or lifecycle 
 
   await page.getByRole("link", { name: "Plugins", exact: true }).click()
   await expect(page).toHaveURL(/#\/plugins$/)
-  await expect(page.getByTestId("plugin-card")).toHaveCount(9)
+  await expect(page.getByTestId("plugin-card")).toHaveCount(8)
   const runbookCard = page.getByTestId("plugin-card").filter({ hasText: "Runbook Preview" })
   await runbookCard.getByRole("link", { name: "Inspect Runbook Preview" }).click()
 
@@ -44,14 +44,13 @@ test("read-only demo explores the real console without API traffic or lifecycle 
   expect(apiRequests).toEqual([])
 })
 
-test("demo switches to a direct Chinese detail route without translating contract identifiers", async ({ page }, testInfo) => {
+test("demo applies ?lang query override cleanly without /zh route prefix", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "demo-chromium", "Desktop bilingual journey")
   const apiRequests = observeApiRequests(page)
 
-  await page.goto("./#/plugins/runbook?tab=contract")
-  await page.getByRole("button", { name: "切换到简体中文" }).click()
+  await page.goto("./#/plugins/runbook?tab=contract&lang=zh")
 
-  await expect(page).toHaveURL(/#\/zh\/plugins\/runbook\?tab=contract$/)
+  await expect(page).toHaveURL(/#\/plugins\/runbook\?tab=contract&lang=zh$/)
   await expect(page.getByRole("heading", { name: "运行手册预览" })).toBeVisible()
   await expect(page.getByText("runbook · API v1", { exact: true })).toBeVisible()
   await expect(page.getByText("runbook.preview", { exact: true })).toBeVisible()
@@ -67,45 +66,47 @@ test("demo switches to a direct Chinese detail route without translating contrac
     "href",
     "https://reliaforge.dev/zh/guide/getting-started.html",
   )
-  await page.reload()
-  await expect(page).toHaveURL(/#\/zh\/plugins\/runbook\?tab=contract$/)
-  await expect(page.getByTestId("demo-notice")).toContainText("只读演示")
 
-  await page.getByRole("button", { name: "Switch to English" }).click()
-  await expect(page).toHaveURL(/#\/plugins\/runbook\?tab=contract$/)
+  // Persisted in localStorage['rf.locale'] across clean navigations without ?lang
+  await page.goto("./#/plugins/runbook?tab=contract")
+  await expect(page.getByTestId("demo-notice")).toContainText("只读演示")
+  await expect(page.getByRole("heading", { name: "运行手册预览" })).toBeVisible()
+
+  await page.goto("./#/plugins/runbook?tab=contract&lang=en")
   await expect(page.getByRole("heading", { name: "Runbook Preview" })).toBeVisible()
   await expect(page).toHaveTitle("ReliaForge · Plugin")
   expect(apiRequests).toEqual([])
 })
 
-test.describe("deterministic locale URLs", () => {
+test.describe("browser locale auto-detection", () => {
   test.use({ locale: "zh-CN" })
 
-  test("does not redirect an English URL from the browser language", async ({ page }, testInfo) => {
+  test("follows browser zh-CN locale automatically without /zh prefix", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "demo-chromium", "Desktop browser-locale journey")
     const apiRequests = observeApiRequests(page)
 
     await page.goto("./#/")
 
     await expect(page).toHaveURL(/#\/$/)
-    await expect(page.locator("html")).toHaveAttribute("lang", "en")
-    await expect(page).toHaveTitle("ReliaForge · Overview")
-    await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible()
+    await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN")
+    await expect(page).toHaveTitle("ReliaForge · 总览")
+    await expect(page.getByRole("heading", { name: "总览", exact: true })).toBeVisible()
     expect(apiRequests).toEqual([])
   })
 })
 
-test("read-only demo keeps its notice and navigation usable on mobile", async ({ page }, testInfo) => {
+test("read-only demo redirects legacy /zh routes and keeps mobile navigation usable", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "demo-mobile-chromium", "Mobile demo journey")
   const apiRequests = observeApiRequests(page)
 
-  await page.goto("./#/zh/about")
+  await page.goto("./#/zh/about?lang=zh")
+  await expect(page).toHaveURL(/#\/about\?lang=zh$/)
   await expect(page.getByTestId("demo-notice")).toBeVisible()
   await page.getByRole("button", { name: "打开导航" }).click()
   await expect(page.getByRole("button", { name: "关闭导航" })).toBeFocused()
   await page.getByRole("link", { name: "插件", exact: true }).click()
-  await expect(page).toHaveURL(/#\/zh\/plugins$/)
-  await expect(page.getByTestId("plugin-card")).toHaveCount(9)
+  await expect(page).toHaveURL(/#\/plugins$/)
+  await expect(page.getByTestId("plugin-card")).toHaveCount(8)
   await expect(page.getByRole("link", { name: "查看 运行手册预览" })).toBeVisible()
   expect(apiRequests).toEqual([])
 })

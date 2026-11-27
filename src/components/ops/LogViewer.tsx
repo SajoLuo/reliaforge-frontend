@@ -1,4 +1,4 @@
-import { Check, Clock, Copy, Download, Pause, Play, Search } from "lucide-react"
+import { Check, Clock, Copy, Download, Pause, Play, Search, WrapText } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { LogLine, LogViewerProps } from "@reliaforge/plugin-sdk"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +8,58 @@ import { cn } from "@/lib/utils"
 import { createEventSource } from "@/runtime/sdkTransport"
 
 const DEFAULT_MAX_LINES = 5000
+
+type NormalizedLogLevel = "error" | "warn" | "info" | "debug" | "none"
+
+const LEVEL_STYLES: Record<NormalizedLogLevel, { badge: string; row: string }> = {
+  error: { badge: "text-danger-ink font-semibold", row: "bg-danger-soft/40" },
+  warn: { badge: "text-warning-ink font-semibold", row: "bg-warning-soft/35" },
+  info: { badge: "text-info-ink font-medium", row: "" },
+  debug: { badge: "text-muted", row: "" },
+  none: { badge: "text-muted", row: "" },
+}
+
+const LOG_LEVEL_MAP: Record<string, NormalizedLogLevel> = {
+  FATAL: "error",
+  ERROR: "error",
+  ERR: "error",
+  CRIT: "error",
+  WARN: "warn",
+  WARNING: "warn",
+  INFO: "info",
+  DEBUG: "debug",
+  TRACE: "debug",
+}
+
+const LOG_LEVEL_PATTERN = /\b(FATAL|ERROR|ERR|CRIT|WARN(?:ING)?|INFO|DEBUG|TRACE)\b/i
+
+function normalizeLogLevel(line: LogLine): NormalizedLogLevel {
+  const candidate = line.level?.trim().toUpperCase()
+  const detected = candidate || LOG_LEVEL_PATTERN.exec(line.message)?.[1]?.toUpperCase() || ""
+  return LOG_LEVEL_MAP[detected] ?? "none"
+}
+
+function formatDisplayTimestamp(raw?: string): string {
+  if (!raw) return ""
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(raw)) {
+    const parsed = new Date(raw)
+    if (!Number.isNaN(parsed.getTime())) {
+      const h = String(parsed.getHours()).padStart(2, "0")
+      const m = String(parsed.getMinutes()).padStart(2, "0")
+      const s = String(parsed.getSeconds()).padStart(2, "0")
+      return `${h}:${m}:${s}`
+    }
+  }
+  return raw
+}
+
+function stripDuplicateTimestamp(message: string, timestamp?: string): string {
+  if (!timestamp) return message
+  if (message.startsWith(timestamp)) {
+    return message.slice(timestamp.length).replace(/^\s+/, "")
+  }
+  return message
+}
 
 function appendWithCap(existing: LogLine[], incoming: LogLine[], cap: number): LogLine[] {
   const combined = incoming.length === 0 ? existing : [...existing, ...incoming]
@@ -117,12 +169,14 @@ function LogToolbar({
   streamStatus,
   paused,
   showTimestamps,
+  wrapLines,
   filterText,
   copied,
   canCopy,
   onFilterChange,
   onTogglePause,
   onToggleTimestamps,
+  onToggleWrap,
   onCopy,
   onDownload,
 }: {
@@ -131,24 +185,26 @@ function LogToolbar({
   streamStatus: "streaming" | "error"
   paused: boolean
   showTimestamps: boolean
+  wrapLines: boolean
   filterText: string
   copied: boolean
   canCopy: boolean
   onFilterChange: (value: string) => void
   onTogglePause: () => void
   onToggleTimestamps: () => void
+  onToggleWrap: () => void
   onCopy: () => void
   onDownload: () => void
 }) {
   const { t } = useLocale()
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-canvas/60 px-4 py-2.5">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-panel px-3 py-2">
       <div className="flex items-center gap-2">
-        {title ? <h3 className="text-sm font-semibold text-ink">{title}</h3> : null}
+        {title ? <h3 className="text-xs font-semibold text-ink">{title}</h3> : null}
         <StreamBadge streamUrl={streamUrl} streamStatus={streamStatus} paused={paused} />
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5 rounded-md border bg-panel px-2.5 py-1">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex items-center gap-1.5 rounded-md border border-line bg-panel-inset px-2 py-1">
           <Search className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
           <input
             type="search"
@@ -156,7 +212,7 @@ function LogToolbar({
             onChange={(event) => onFilterChange(event.target.value)}
             placeholder={t("ops.logs.filterPlaceholder")}
             aria-label={t("ops.logs.filterPlaceholder")}
-            className="w-40 bg-transparent text-xs text-ink placeholder:text-muted focus:outline-none sm:w-52"
+            className="w-36 bg-transparent text-xs text-ink placeholder:text-muted focus:outline-none sm:w-48"
           />
         </div>
         <Button type="button" variant="secondary" size="small" aria-pressed={paused} onClick={onTogglePause}>
@@ -166,6 +222,10 @@ function LogToolbar({
         <Button type="button" variant="secondary" size="small" aria-pressed={showTimestamps} onClick={onToggleTimestamps}>
           <Clock className="h-3.5 w-3.5" aria-hidden="true" />
           {t("ops.logs.timestamps")}
+        </Button>
+        <Button type="button" variant="secondary" size="small" aria-pressed={wrapLines} onClick={onToggleWrap}>
+          <WrapText className="h-3.5 w-3.5" aria-hidden="true" />
+          {t("ops.logs.wrap")}
         </Button>
         <Button type="button" variant="secondary" size="small" disabled={!canCopy} onClick={onCopy}>
           {copied ? <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -180,13 +240,43 @@ function LogToolbar({
   )
 }
 
-function LogLineRow({ line, showTimestamps }: { line: LogLine; showTimestamps: boolean }) {
+function LogLineRow({
+  line,
+  displayTimestamp,
+  repeatedTimestamp,
+  showTimestamps,
+  wrapLines,
+}: {
+  line: LogLine
+  displayTimestamp: string
+  repeatedTimestamp: boolean
+  showTimestamps: boolean
+  wrapLines: boolean
+}) {
+  const level = normalizeLogLevel(line)
+  const styles = LEVEL_STYLES[level]
+  const cleanMessage = stripDuplicateTimestamp(line.message, line.timestamp)
+
   return (
-    <div className="whitespace-pre-wrap break-words py-0.5">
-      {showTimestamps && line.timestamp ? <span className="mr-2 text-inverse-muted">{line.timestamp}</span> : null}
-      {line.level ? <span className="mr-2 font-semibold">[{line.level}]</span> : null}
-      {line.source ? <span className="mr-2 text-inverse-muted">{line.source}:</span> : null}
-      <span>{line.message}</span>
+    <div
+      className={cn(
+        "rounded-sm px-1.5 py-0.5",
+        wrapLines ? "whitespace-pre-wrap break-words" : "whitespace-pre",
+        styles.row,
+      )}
+    >
+      {showTimestamps && displayTimestamp ? (
+        <span
+          title={line.timestamp}
+          aria-hidden={repeatedTimestamp || undefined}
+          className={cn("mr-2 text-muted", repeatedTimestamp && "select-none opacity-0")}
+        >
+          {displayTimestamp}
+        </span>
+      ) : null}
+      {line.level ? <span className={cn("mr-2", styles.badge)}>[{line.level}]</span> : null}
+      {line.source ? <span className="mr-2 text-muted">{line.source}:</span> : null}
+      <span className={level === "error" ? "text-danger-ink" : undefined}>{cleanMessage}</span>
     </div>
   )
 }
@@ -197,31 +287,45 @@ function LogViewport({
   lines,
   emptyMessage,
   showTimestamps,
+  wrapLines,
 }: {
   viewportRef: React.RefObject<HTMLDivElement>
   loading: boolean
   lines: LogLine[]
   emptyMessage?: string
   showTimestamps: boolean
+  wrapLines: boolean
 }) {
   const { t } = useLocale()
+  const renderedTimestamps = lines.map((line) => formatDisplayTimestamp(line.timestamp))
+
   return (
     <div
       ref={viewportRef}
-      className="max-h-[28rem] min-h-[12rem] overflow-y-auto bg-inverse px-4 py-3 font-mono text-xs leading-5 text-code-ink tabular-nums"
+      className={cn(
+        "max-h-[28rem] min-h-[12rem] overflow-y-auto bg-panel-inset px-3 py-2.5 font-mono text-xs leading-5 text-ink tabular-nums",
+        !wrapLines && "overflow-x-auto",
+      )}
     >
       {loading && lines.length === 0 ? (
-        <p className="text-inverse-muted">{t("ops.loadingData")}</p>
+        <p className="text-muted">{t("ops.loadingData")}</p>
       ) : lines.length === 0 ? (
-        <p className="text-inverse-muted">{emptyMessage ?? t("ops.logs.empty")}</p>
+        <p className="text-muted">{emptyMessage ?? t("ops.logs.empty")}</p>
       ) : (
-        lines.map((line, index) => (
-          <LogLineRow
-            key={line.id ?? `${index}-${line.timestamp ?? ""}`}
-            line={line}
-            showTimestamps={showTimestamps}
-          />
-        ))
+        lines.map((line, index) => {
+          const displayTs = renderedTimestamps[index]
+          const repeated = Boolean(displayTs) && index > 0 && renderedTimestamps[index - 1] === displayTs
+          return (
+            <LogLineRow
+              key={line.id ?? `${index}-${line.timestamp ?? ""}`}
+              line={line}
+              displayTimestamp={displayTs}
+              repeatedTimestamp={repeated}
+              showTimestamps={showTimestamps}
+              wrapLines={wrapLines}
+            />
+          )
+        })
       )}
     </div>
   )
@@ -302,7 +406,19 @@ function filterVisibleLogLines(lines: LogLine[], filterText: string): LogLine[] 
 
 function LogErrorBanner({ error }: { error: string | null }) {
   if (!error) return null
-  return <p role="alert" className="border-b bg-danger-soft px-4 py-2 text-xs text-danger-ink">{error}</p>
+  return <p role="alert" className="border-b border-line bg-danger-soft px-3 py-2 text-xs text-danger-ink">{error}</p>
+}
+
+function useAutoScroll(
+  viewportRef: React.RefObject<HTMLDivElement>,
+  paused: boolean,
+  lineCount: number,
+) {
+  useEffect(() => {
+    if (!paused && viewportRef.current) {
+      viewportRef.current.scrollTop = viewportRef.current.scrollHeight
+    }
+  }, [lineCount, paused, viewportRef])
 }
 
 export function LogViewer({
@@ -315,12 +431,14 @@ export function LogViewer({
   error = null,
   emptyMessage,
   defaultShowTimestamps = true,
+  defaultWrap = true,
   downloadFileName = "reliaforge-logs.log",
   className,
 }: LogViewerProps) {
   const { activeLines, status: streamStatus, pushLines, updateStatus } = useStreamedLogs(streamUrl, maxLines)
   const [pausedSnapshot, setPausedSnapshot] = useState<LogLine[] | null>(null)
   const [showTimestamps, setShowTimestamps] = useState(defaultShowTimestamps)
+  const [wrapLines, setWrapLines] = useState(defaultWrap)
   const [filterText, setFilterText] = useState("")
   const [copied, setCopied] = useState(false)
   const viewportRef = useRef<HTMLDivElement>(null)
@@ -330,18 +448,12 @@ export function LogViewer({
     () => appendWithCap(lines, activeLines, maxLines),
     [activeLines, lines, maxLines],
   )
-  const effectiveLines = pausedSnapshot ?? liveLines
-
   const visibleLines = useMemo(
-    () => filterVisibleLogLines(effectiveLines, filterText),
-    [effectiveLines, filterText],
+    () => filterVisibleLogLines(pausedSnapshot ?? liveLines, filterText),
+    [filterText, liveLines, pausedSnapshot],
   )
 
-  useEffect(() => {
-    if (!paused && viewportRef.current) {
-      viewportRef.current.scrollTop = viewportRef.current.scrollHeight
-    }
-  }, [paused, visibleLines.length])
+  useAutoScroll(viewportRef, paused, visibleLines.length)
 
   const exportText = useMemo(
     () => visibleLines.map((line) => formatLine(line, showTimestamps)).join("\n"),
@@ -355,7 +467,7 @@ export function LogViewer({
   }
 
   return (
-    <section className={cn("overflow-hidden rounded-lg border bg-panel", className)} data-testid="log-viewer">
+    <section className={cn("overflow-hidden rounded-lg border border-line bg-panel shadow-panel", className)} data-testid="log-viewer">
       {streamUrl ? (
         <SseLogSubscriber key={streamUrl} streamUrl={streamUrl} parseLine={parseLine} onLines={pushLines} onStatus={updateStatus} />
       ) : null}
@@ -366,12 +478,14 @@ export function LogViewer({
         streamStatus={streamStatus}
         paused={paused}
         showTimestamps={showTimestamps}
+        wrapLines={wrapLines}
         filterText={filterText}
         copied={copied}
         canCopy={hasClipboardApi()}
         onFilterChange={setFilterText}
         onTogglePause={() => setPausedSnapshot((prev) => (prev === null ? liveLines : null))}
         onToggleTimestamps={() => setShowTimestamps((s) => !s)}
+        onToggleWrap={() => setWrapLines((w) => !w)}
         onCopy={() => void handleCopy()}
         onDownload={() => downloadTextFile(exportText, downloadFileName)}
       />
@@ -384,6 +498,7 @@ export function LogViewer({
         lines={visibleLines}
         emptyMessage={emptyMessage}
         showTimestamps={showTimestamps}
+        wrapLines={wrapLines}
       />
     </section>
   )

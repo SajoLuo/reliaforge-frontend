@@ -36,10 +36,10 @@ test("lifecycle controls follow the backend action contract after a transition",
 
   await expect(page.getByRole("button", { name: "Start" })).toBeVisible()
   await expect(page.getByRole("button", { name: "Stop" })).toHaveCount(0)
-  await expect(page.getByText("stopped", { exact: true })).toBeVisible()
+  await expect(page.locator("header").getByText("stopped", { exact: true })).toBeVisible()
 })
 
-test("dynamic ESM plugins load routes, overview widgets, and themes via window.__RELIAFORGE_HOST__", async ({ page }, testInfo) => {
+test("dynamic ESM plugins load routes and overview widgets via window.__RELIAFORGE_HOST__", async ({ page }, testInfo) => {
   const esmPlugins = [
     {
       id: "sample_esm",
@@ -56,7 +56,7 @@ test("dynamic ESM plugins load routes, overview widgets, and themes via window._
         category: "Infrastructure",
         ui_mode: "esm",
         nav: [{ label: "Sample Ops", label_zh: "示例运维", path: "", icon: "server", order: 10, section: "workspace" }],
-        provides_themes: ["retro-emerald"],
+        provides_themes: [],
         entry_url: "/api/v1/plugins/sample_esm/ui/entry.js?v=test01",
         style_url: "/api/v1/plugins/sample_esm/ui/style.css?v=test01",
       },
@@ -66,13 +66,28 @@ test("dynamic ESM plugins load routes, overview widgets, and themes via window._
 
   const sampleBundle = `
     const bridge = window.__RELIAFORGE_HOST__;
-    const { createElement } = bridge.modules.react;
-    const { Card, CardContent, PageHeader } = bridge.modules["@reliaforge/plugin-sdk"];
+    const { createElement, useState } = bridge.modules.react;
+    const { Card, CardContent, PageHeader, Button, Sheet, Status } = bridge.modules["@reliaforge/plugin-sdk"];
     function WorkspacePage({ pluginId }) {
-      return createElement(Card, null, createElement(CardContent, null, createElement(PageHeader, {
-        title: "Dynamic ESM Workspace",
-        description: "Mounted plugin " + pluginId,
-      })));
+      const [open, setOpen] = useState(false);
+      return createElement(
+        Card,
+        null,
+        createElement(
+          CardContent,
+          null,
+          createElement(PageHeader, {
+            title: "Dynamic ESM Workspace",
+            meta: createElement(Status, { value: "healthy" }),
+            actions: createElement(Button, { onClick: () => setOpen(true) }, "Inspect Sheet"),
+          }),
+          createElement(
+            Sheet,
+            { open, onClose: () => setOpen(false), title: "Plugin Sheet", size: "md" },
+            createElement("p", null, "Mounted plugin " + pluginId),
+          ),
+        ),
+      );
     }
     function StatusWidget({ pluginId }) {
       return createElement("p", null, "Widget ready for " + pluginId);
@@ -82,7 +97,6 @@ test("dynamic ESM plugins load routes, overview widgets, and themes via window._
       id: "sample_esm",
       routes: [{ path: "", element: WorkspacePage }],
       overviewWidgets: [{ id: "status", title: "Sample Status", span: 2, component: StatusWidget }],
-      themes: [{ id: "retro-emerald", label: "Retro Emerald", cssClass: "theme-retro-emerald", tokens: { canvas: "4 10 8", accent: "0 214 143" } }],
     };
   `
 
@@ -103,10 +117,70 @@ test("dynamic ESM plugins load routes, overview widgets, and themes via window._
   if (testInfo.project.name === "mobile-chromium") {
     await page.getByRole("button", { name: "Open navigation" }).click()
   }
-  await page.getByLabel("Appearance").selectOption("retro-emerald")
-  await expect(page.locator("html")).toHaveAttribute("data-console-theme", "retro-emerald")
 
   await page.getByRole("link", { name: "Sample Ops", exact: true }).click()
   await expect(page.getByRole("heading", { name: "Dynamic ESM Workspace" })).toBeVisible()
   await expect(page.locator('[data-rf-plugin="sample_esm"]')).toBeVisible()
+
+  await page.getByRole("button", { name: "Inspect Sheet" }).click()
+  await expect(page.getByTestId("sheet")).toContainText("Mounted plugin sample_esm")
+  await page.keyboard.press("Escape")
+  await expect(page.getByTestId("sheet")).toHaveCount(0)
+})
+
+test("mounts infra_overview directly on / and keeps platform overview on /platform", async ({ page }, testInfo) => {
+  const infraPlugins = [
+    {
+      id: "infra_overview",
+      name: "Infra Overview",
+      version: "1.0.0",
+      description: "Infrastructure cockpit",
+      api_version: "v1",
+      state: "running",
+      available_actions: [],
+      dependencies: [],
+      capabilities: ["infra_overview.topology"],
+      settings_schema: {},
+      frontend: {
+        category: "Infrastructure",
+        ui_mode: "esm",
+        nav: [{ label: "Overview", label_zh: "总览", path: "", icon: "layers", order: 10, section: "workspace" }],
+        provides_themes: [],
+        entry_url: "/api/v1/plugins/infra_overview/ui/entry.js?v=test01",
+        style_url: null,
+      },
+      health: { status: "healthy", details: null },
+    },
+  ]
+
+  const infraBundle = `
+    const { createElement } = window.__RELIAFORGE_HOST__.modules.react;
+    const { PageHeader } = window.__RELIAFORGE_HOST__.modules["@reliaforge/plugin-sdk"];
+    function CockpitPage() {
+      return createElement(PageHeader, { title: "Infra Cockpit" });
+    }
+    export default {
+      apiVersion: "v1",
+      id: "infra_overview",
+      routes: [{ path: "", element: CockpitPage }],
+    };
+  `
+
+  await page.route("**/api/v1/status", (route) =>
+    route.fulfill({ json: { status: "healthy", version: "0.2.0", plugins: { total: 1, running: 1, degraded: 0, stopped: 0, error: 0 } } }),
+  )
+  await page.route("**/api/v1/plugins", (route) => route.fulfill({ json: { plugins: infraPlugins } }))
+  await page.route("**/api/v1/plugins/infra_overview/ui/entry.js**", (route) =>
+    route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: infraBundle }),
+  )
+
+  await page.goto("/")
+  await expect(page.getByRole("heading", { name: "Infra Cockpit" })).toBeVisible()
+
+  if (testInfo.project.name === "mobile-chromium") {
+    await page.getByRole("button", { name: "Open navigation" }).click()
+  }
+  await page.getByRole("link", { name: "Platform", exact: true }).click()
+  await expect(page).toHaveURL(/\/platform$/)
+  await expect(page.getByRole("heading", { name: "Platform", exact: true })).toBeVisible()
 })

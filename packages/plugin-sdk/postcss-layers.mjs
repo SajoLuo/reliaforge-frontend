@@ -14,13 +14,6 @@ function resolveBreakpointLayer(params) {
   return BREAKPOINT_LAYERS.get(match[1].toLowerCase()) ?? null
 }
 
-function isThemeScopedNode(node) {
-  if (node.type === "rule" && typeof node.selector === "string") {
-    return node.selector.includes("data-console-theme")
-  }
-  return false
-}
-
 /**
  * PostCSS plugin that places base utilities and responsive breakpoint queries
  * into ordered CSS Cascade Layers (`rf-base` < `rf-sm` < `rf-md` < `rf-lg` < `rf-xl` < `rf-2xl`)
@@ -42,11 +35,6 @@ export function reliaforgeBreakpointLayers() {
       for (const node of nodesToProcess) {
         if (node.type === "comment") continue
         if (node.type === "atrule" && (node.name === "charset" || node.name === "import" || node.name === "keyframes" || node.name === "layer")) {
-          currentLayerName = null
-          currentLayerRule = null
-          continue
-        }
-        if (isThemeScopedNode(node)) {
           currentLayerName = null
           currentLayerRule = null
           continue

@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { getPlatformStatus, listPlugins } from "@/api/plugins"
 import { OverviewPage } from "@/pages/OverviewPage"
 import { PluginRuntimeProvider } from "@/runtime/PluginRuntimeProvider"
-import { ThemeProvider } from "@/theme/ThemeProvider"
 import type { PlatformStatusResponse, PluginView } from "@/types/plugin"
 
 vi.mock("@/api/plugins", () => ({
@@ -43,15 +42,18 @@ describe("OverviewPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Runtime is unavailable.")
   })
 
-  it("renders summary metrics and the empty catalog state", async () => {
+  it("renders summary metrics, platform mode title, and the empty catalog state", async () => {
     vi.mocked(getPlatformStatus).mockResolvedValue(status)
     vi.mocked(listPlugins).mockResolvedValue({ plugins: [] })
-    render(<MemoryRouter><OverviewPage /></MemoryRouter>)
+    const { rerender } = render(<MemoryRouter><OverviewPage /></MemoryRouter>)
 
     expect(await screen.findByRole("heading", { name: "Overview" })).toBeInTheDocument()
-    expect(screen.getByRole("region", { name: "Backend summary" })).toHaveTextContent("healthy")
+    expect(screen.getByRole("region", { name: "Backend summary" })).toHaveTextContent("Healthy")
     expect(screen.getByTestId("overview-summary")).toHaveTextContent("Needs attention")
     expect(screen.getByTestId("empty-state")).toHaveTextContent("No plugins discovered")
+
+    rerender(<MemoryRouter><OverviewPage mode="platform" /></MemoryRouter>)
+    expect(await screen.findByRole("heading", { name: "Platform" })).toBeInTheDocument()
   })
 
   it("renders plugin overview widgets below the platform summary", async () => {
@@ -95,11 +97,9 @@ describe("OverviewPage", () => {
 
     render(
       <MemoryRouter>
-        <ThemeProvider>
-          <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
-            <OverviewPage />
-          </PluginRuntimeProvider>
-        </ThemeProvider>
+        <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
+          <OverviewPage />
+        </PluginRuntimeProvider>
       </MemoryRouter>,
     )
 

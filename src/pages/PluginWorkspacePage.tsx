@@ -2,11 +2,13 @@ import type { ReactNode } from "react"
 import { Link, Navigate, Route, Routes, useParams } from "react-router-dom"
 import type { ReliaForgeFrontendPlugin } from "@reliaforge/plugin-sdk"
 import { StatePanel } from "@/components/common/StatePanel"
+import { HOME_WORKSPACE_PLUGIN_ID, isHomeWorkspacePlugin } from "@/runtime/homeWorkspace"
 import { PluginErrorBoundary } from "@/components/plugins/PluginErrorBoundary"
 import { isDemo } from "@/config/buildMode"
 import { usePlugin } from "@/hooks/usePlugins"
 import type { Translator } from "@/i18n/types"
 import { useLocale } from "@/i18n/useLocale"
+import { OverviewPage } from "@/pages/OverviewPage"
 import { usePluginRuntime } from "@/runtime/PluginRuntimeProvider"
 import { buildPluginPath, PluginRouteContext } from "@/runtime/pluginRouting"
 import type { PluginView } from "@/types/plugin"
@@ -112,9 +114,68 @@ function renderRuntimePendingOrError(
     return <StatePanel kind="error" title={t("workspace.loadErrorTitle")} description={loadError} onRetry={runtime.refresh} />
   }
   if (!loadedModule) {
-    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} description={t("workspace.loadingDescription")} />
+    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} />
   }
   return <PluginRoutesView plugin={plugin} loadedModule={loadedModule} detailLink={detailLink} />
+}
+
+export function HomePage() {
+  const { pathFor, t } = useLocale()
+  const runtime = usePluginRuntime()
+
+  if (isDemo) {
+    return <OverviewPage mode="overview" />
+  }
+
+  if (runtime.catalogLoading && runtime.plugins.length === 0) {
+    return <StatePanel kind="loading" title={t("overview.loadingTitle")} />
+  }
+
+  const homePlugin = runtime.plugins.find((plugin) => plugin.id === HOME_WORKSPACE_PLUGIN_ID)
+  if (!homePlugin || !isHomeWorkspacePlugin(homePlugin)) {
+    return <OverviewPage mode="overview" />
+  }
+
+  const loadedModule = runtime.loadedPlugins[homePlugin.id]
+  const loadError = runtime.errors[homePlugin.id]
+  if (loadError) {
+    return (
+      <StatePanel
+        kind="error"
+        title={t("workspace.loadErrorTitle")}
+        description={loadError}
+        onRetry={runtime.refresh}
+        action={
+          <Link
+            className="inline-flex h-8 items-center justify-center rounded-md border border-line bg-panel px-3 text-xs font-medium text-ink transition-colors hover:bg-neutral-soft"
+            to={pathFor("/platform")}
+          >
+            {t("workspace.openPlatform")}
+          </Link>
+        }
+      />
+    )
+  }
+
+  if (!loadedModule) {
+    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} />
+  }
+
+  const rootRoute = loadedModule.routes?.find((route) => route.path.replace(/^\/+/, "") === "")
+  if (!rootRoute) {
+    return <OverviewPage mode="overview" />
+  }
+
+  const RootElement = rootRoute.element
+  return (
+    <div data-rf-plugin={homePlugin.id}>
+      <PluginErrorBoundary pluginId={homePlugin.id}>
+        <PluginRouteContext.Provider value={homePlugin.id}>
+          <RootElement pluginId={homePlugin.id} />
+        </PluginRouteContext.Provider>
+      </PluginErrorBoundary>
+    </div>
+  )
 }
 
 export function PluginWorkspacePage() {
@@ -124,7 +185,7 @@ export function PluginWorkspacePage() {
   const runtime = usePluginRuntime()
 
   if (loading && !plugin) {
-    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} description={t("workspace.loadingDescription")} />
+    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} />
   }
 
   if (error || !plugin) {
@@ -140,7 +201,7 @@ export function PluginWorkspacePage() {
 
   const detailLink = (
     <Link
-      className="inline-flex h-10 items-center justify-center rounded-md border border-line bg-panel px-4 text-sm font-medium text-ink transition-colors hover:bg-neutral-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="inline-flex h-8 items-center justify-center rounded-md border border-line bg-panel px-3 text-xs font-medium text-ink transition-colors hover:bg-neutral-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       to={pathFor(`/plugins/${encodeURIComponent(plugin.id)}`)}
     >
       {t("workspace.demoInspectPlugin")}

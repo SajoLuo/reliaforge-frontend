@@ -166,15 +166,15 @@ function TerminalHeader({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 border-b bg-canvas/60 px-4 py-2.5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-          <TerminalIcon className="h-4 w-4 text-accent" aria-hidden="true" />
+      <div className="flex items-center justify-between gap-3 border-b border-line bg-panel px-3 py-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+          <TerminalIcon className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
           <span>{title ?? t("ops.terminal.title")}</span>
         </div>
         <Badge tone={statusTones[status]}>{statusLabel}</Badge>
       </div>
       {errorReason ? (
-        <p role="alert" className="border-b bg-danger-soft px-4 py-2 text-xs text-danger-ink">{errorReason}</p>
+        <p role="alert" className="border-b border-line bg-danger-soft px-3 py-2 text-xs text-danger-ink">{errorReason}</p>
       ) : null}
     </>
   )

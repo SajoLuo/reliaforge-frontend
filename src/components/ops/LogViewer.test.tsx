@@ -46,7 +46,7 @@ afterEach(() => {
 })
 
 describe("LogViewer", () => {
-  it("streams SSE lines with ring cap, filters by keyword, toggles timestamps, copies, and downloads", async () => {
+  it("streams SSE lines with ring cap, filters by keyword, toggles timestamps & wrap, copies, and downloads", async () => {
     const user = userEvent.setup()
     vi.stubGlobal("EventSource", MockEventSource)
     const writeText = vi.fn().mockResolvedValue(undefined)
@@ -80,13 +80,15 @@ describe("LogViewer", () => {
     expect(screen.getByText("listening on 8080")).toBeInTheDocument()
     expect(screen.getByText("plain line")).toBeInTheDocument()
 
+    await user.click(screen.getByRole("button", { name: "Wrap" }))
+    expect(screen.getByRole("button", { name: "Wrap" })).toHaveAttribute("aria-pressed", "false")
+
     await user.click(screen.getByRole("button", { name: "Timestamps" }))
     expect(screen.queryByText("12:00:01Z")).not.toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Pause" }))
     expect(screen.getByText("Paused")).toBeInTheDocument()
 
-    // Incoming lines while paused must NOT shift the frozen paused snapshot until resumed.
     act(() => {
       source.emit("message", "after pause line")
     })
@@ -109,22 +111,25 @@ describe("LogViewer", () => {
     expect(source.closed).toBe(true)
   })
 
-  it("caps static non-streaming lines to maxLines and disables copy when clipboard API is absent", () => {
+  it("highlights log levels, deduplicates consecutive and inline timestamps, and disables copy when clipboard is absent", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined })
     render(
       <LogViewer
-        maxLines={2}
+        maxLines={3}
         lines={[
-          { id: "1", message: "static-one" },
-          { id: "2", message: "static-two" },
-          { id: "3", message: "static-three" },
+          { id: "1", timestamp: "12:00:00Z", level: "ERROR", message: "12:00:00Z connection failed" },
+          { id: "2", timestamp: "12:00:00Z", level: "WARN", message: "retrying socket" },
+          { id: "3", timestamp: "12:00:02Z", level: "INFO", message: "recovered" },
         ]}
       />,
     )
 
-    expect(screen.queryByText("static-one")).not.toBeInTheDocument()
-    expect(screen.getByText("static-two")).toBeInTheDocument()
-    expect(screen.getByText("static-three")).toBeInTheDocument()
+    expect(screen.getByText("connection failed")).toHaveClass("text-danger-ink")
+    expect(screen.getByText("[WARN]")).toHaveClass("text-warning-ink")
+    expect(screen.getByText("[INFO]")).toHaveClass("text-info-ink")
+    const repeatedTimestamps = screen.getAllByText("12:00:00Z")
+    expect(repeatedTimestamps[0]).not.toHaveClass("opacity-0")
+    expect(repeatedTimestamps[1]).toHaveClass("opacity-0")
     expect(screen.getByRole("button", { name: "Copy" })).toBeDisabled()
   })
 })

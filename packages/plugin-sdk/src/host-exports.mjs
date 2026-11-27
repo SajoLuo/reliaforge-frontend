@@ -1,31 +1,5 @@
 export const SDK_VERSION = "1"
 
-export const THEME_TOKEN_KEYS = [
-  "canvas",
-  "panel",
-  "ink",
-  "muted",
-  "line",
-  "accent",
-  "accent-ink",
-  "accent-soft",
-  "danger",
-  "danger-button-ink",
-  "danger-soft",
-  "danger-ink",
-  "success-soft",
-  "success-ink",
-  "warning-soft",
-  "warning-ink",
-  "neutral-soft",
-  "neutral-ink",
-  "inverse",
-  "inverse-ink",
-  "inverse-muted",
-  "code-ink",
-  "shadow",
-]
-
 export const HOST_MODULE_EXPORTS = {
   react: {
     hasDefault: true,
@@ -236,7 +210,6 @@ export const HOST_MODULE_EXPORTS = {
     exports: [
       "SDK_VERSION",
       "HOST_MODULE_EXPORTS",
-      "THEME_TOKEN_KEYS",
       "Card",
       "CardHeader",
       "CardContent",
@@ -245,6 +218,15 @@ export const HOST_MODULE_EXPORTS = {
       "StatePanel",
       "PageHeader",
       "DataTable",
+      "Sheet",
+      "RowActions",
+      "Status",
+      "StatusBadge",
+      "StatusDot",
+      "RelativeTime",
+      "StatGrid",
+      "StatTile",
+      "Sparkline",
       "ConfirmActionDialog",
       "LogViewer",
       "TerminalPane",

@@ -62,7 +62,11 @@ function plugin(id: string): PluginView {
   }
 }
 
-afterEach(() => vi.resetAllMocks())
+afterEach(() => {
+  vi.resetAllMocks()
+  window.localStorage.clear()
+  document.documentElement.lang = "en"
+})
 
 describe("usePlugin", () => {
   it("rechecks state after a lost action response without retrying the action", async () => {
@@ -191,7 +195,7 @@ describe("usePlugin", () => {
     await act(async () => result.current.pluginState.performAction("stop"))
     expect(result.current.pluginState.actionError).toBe("You do not have permission to perform this action.")
 
-    act(() => result.current.navigate("/zh/"))
+    act(() => result.current.navigate("/?lang=zh"))
     await waitFor(() => expect(result.current.pluginState.actionError).toBe("你没有执行此操作的权限。"))
     expect(runPluginAction).toHaveBeenCalledOnce()
 

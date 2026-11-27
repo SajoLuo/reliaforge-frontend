@@ -4,31 +4,38 @@
 
 :root {
   color-scheme: light;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-synthesis: none;
-  --canvas: 250 251 250;
+  --canvas: 244 246 248;
   --panel: 255 255 255;
-  --ink: 13 17 15;
-  --muted: 91 101 96;
-  --line: 225 230 227;
+  --panel-inset: 249 250 251;
+  --line: 226 229 234;
+  --ink: 17 24 39;
+  --muted: 100 116 139;
   --accent: 0 126 80;
   --accent-ink: 255 255 255;
   --accent-soft: 222 249 237;
-  --danger: 185 28 28;
+  --success: 22 163 74;
+  --success-soft: 220 252 231;
+  --success-ink: 21 128 61;
+  --warning: 217 119 6;
+  --warning-soft: 254 243 199;
+  --warning-ink: 180 83 9;
+  --danger: 220 38 38;
   --danger-button-ink: 255 255 255;
-  --danger-soft: 254 235 235;
-  --danger-ink: 153 27 27;
-  --success-soft: 222 249 237;
-  --success-ink: 0 118 75;
-  --warning-soft: 250 248 239;
-  --warning-ink: 87 76 46;
-  --neutral-soft: 244 246 245;
-  --neutral-ink: 70 80 75;
-  --inverse: 11 17 14;
-  --inverse-ink: 247 249 248;
-  --inverse-muted: 156 166 161;
+  --danger-soft: 254 226 226;
+  --danger-ink: 185 28 28;
+  --info: 37 99 235;
+  --info-soft: 219 234 254;
+  --info-ink: 29 78 216;
+  --neutral: 100 116 139;
+  --neutral-soft: 241 245 249;
+  --neutral-ink: 71 85 105;
+  --inverse: 15 17 21;
+  --inverse-ink: 236 238 241;
+  --inverse-muted: 148 156 168;
   --code-ink: 214 246 230;
-  --shadow: 9 16 13;
+  --shadow: 17 24 39;
 }
 
 * {
@@ -58,27 +65,34 @@ a {
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --canvas: 9 12 11;
-    --panel: 14 18 16;
-    --ink: 242 245 243;
-    --muted: 153 163 158;
-    --line: 42 49 46;
+    --canvas: 11 12 14;
+    --panel: 18 19 22;
+    --panel-inset: 24 26 30;
+    --line: 40 43 49;
+    --ink: 236 238 241;
+    --muted: 148 156 168;
     --accent: 52 211 153;
     --accent-ink: 5 46 31;
-    --accent-soft: 20 61 45;
+    --accent-soft: 16 58 43;
+    --success: 34 197 94;
+    --success-soft: 17 55 34;
+    --success-ink: 110 231 183;
+    --warning: 245 158 11;
+    --warning-soft: 58 40 14;
+    --warning-ink: 252 211 77;
     --danger: 248 113 113;
     --danger-button-ink: 69 10 10;
-    --danger-soft: 70 29 31;
+    --danger-soft: 69 26 26;
     --danger-ink: 254 202 202;
-    --success-soft: 19 63 45;
-    --success-ink: 110 231 183;
-    --warning-soft: 45 40 27;
-    --warning-ink: 253 230 138;
-    --neutral-soft: 29 35 32;
-    --neutral-ink: 204 211 207;
-    --inverse: 5 8 7;
-    --inverse-ink: 247 249 248;
-    --inverse-muted: 145 155 150;
+    --info: 96 165 250;
+    --info-soft: 23 44 77;
+    --info-ink: 147 197 253;
+    --neutral: 148 156 168;
+    --neutral-soft: 32 35 42;
+    --neutral-ink: 203 210 220;
+    --inverse: 7 8 10;
+    --inverse-ink: 236 238 241;
+    --inverse-muted: 148 156 168;
     --code-ink: 167 243 208;
     --shadow: 0 0 0;
   }

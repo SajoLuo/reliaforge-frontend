@@ -9,8 +9,8 @@ describe("demoApi", () => {
     ])
 
     expect(status.plugins).toEqual({
-      total: 9,
-      running: 9,
+      total: 8,
+      running: 8,
       degraded: 0,
       stopped: 0,
       error: 0,
@@ -21,10 +21,9 @@ describe("demoApi", () => {
       "infra_overview",
       "proxmox",
       "kubernetes",
-      "observability",
       "gitops_argocd",
+      "observability",
       "ops_audit",
-      "homoshell_theme",
     ])
     expect(catalog.plugins.every((plugin) => plugin.available_actions.length === 0)).toBe(true)
     expect(catalog.plugins[1].dependencies).toEqual([
@@ -33,7 +32,8 @@ describe("demoApi", () => {
     expect(catalog.plugins[1].health.details).toEqual({ service_running: true })
     expect(catalog.plugins[2].dependencies.every((dep) => dep.optional)).toBe(true)
     expect(catalog.plugins[2].frontend.nav[0]).toMatchObject({
-      label: "Infrastructure",
+      label: "Overview",
+      label_zh: "总览",
       section: "workspace",
     })
   })
@@ -44,7 +44,7 @@ describe("demoApi", () => {
     first.plugins.push(first.plugins[0])
 
     const second = await demoApi.listPlugins()
-    expect(second.plugins).toHaveLength(9)
+    expect(second.plugins).toHaveLength(8)
     expect(second.plugins[0].settings_schema).not.toHaveProperty("tampered")
   })
 

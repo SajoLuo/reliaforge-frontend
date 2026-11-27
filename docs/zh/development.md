@@ -19,19 +19,21 @@ Page -> hook -> API function -> HTTP client -> backend
 
 ## 路由与语言
 
-控制台有五类路由：
+控制台有六类路由：
 
-- `/` — 后端摘要与插件概览挂件；
+- `/` — 主工作台总览（可用时直达，否则显示平台摘要）；
+- `/platform` — 后端摘要与插件概览挂件；
 - `/plugins` — 插件列表；
 - `/plugins/{plugin_id}` — 插件详情；
 - `/p/{plugin_id}/*` — 动态 ESM 插件工作台；
 - `/about` — 项目和安装链接。
 
-英文直接使用这些路由，简体中文增加 `/zh`，例如 `/zh/plugins/{plugin_id}`。正常构建使用
-`BrowserRouter`，演示构建使用 `HashRouter`。
+中英文共用无前缀路由（旧的 `/zh/*` 书签会自动重定向到 `/*`）。正常构建使用 `BrowserRouter`，
+演示构建使用 `HashRouter`。
 
-`LocaleProvider` 从 URL 读取语言。切换语言时会保留当前页面和查询参数。客户端生成的每条用户
-消息都要加入两份语言词典。插件 ID、能力名称、Schema 键、API 值和后端返回的文本保持原样。
+`LocaleProvider` 按 `?lang=zh|en`（会写入 `localStorage`）、本地缓存和浏览器 `navigator.languages`
+自动选择语言。客户端生成的每条用户消息都要加入两份语言词典。插件 ID、能力名称、Schema 键、
+API 值和后端返回的文本保持原样。
 
 ## 配置
 
@@ -46,7 +48,7 @@ npm run preview:demo
 npm run test:e2e:demo
 ```
 
-[在线演示](https://demo.reliaforge.dev/#/zh/)校验与正常构建相同的响应结构。它读取相互独立的
+[在线演示](https://demo.reliaforge.dev/)校验与正常构建相同的响应结构。它读取相互独立的
 `demo` 和 `runbook` 静态数据，不提供启停操作，也不发送 API 请求。按照
 [项目快速开始](https://reliaforge.dev/zh/guide/getting-started.html)可以在本地运行后端。
 

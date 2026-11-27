@@ -11,21 +11,18 @@ import type { LinkProps } from "react-router-dom"
 import {
   HOST_MODULE_EXPORTS,
   SDK_VERSION,
-  THEME_TOKEN_KEYS,
   type HostModuleDescriptor,
   type HostModuleName,
-  type ThemeTokenKey,
 } from "./host-exports.mjs"
 
-export { HOST_MODULE_EXPORTS, SDK_VERSION, THEME_TOKEN_KEYS }
-export type { HostModuleDescriptor, HostModuleName, ThemeTokenKey }
+export { HOST_MODULE_EXPORTS, SDK_VERSION }
+export type { HostModuleDescriptor, HostModuleName }
 
 export type SdkLocale = "en" | "zh"
 
 export interface SdkLocaleContextValue {
   locale: SdkLocale
   pathFor: (path: string) => string
-  switchLocale: (locale: SdkLocale) => void
 }
 
 export interface PluginPageProps {
@@ -50,20 +47,19 @@ export interface PluginOverviewWidget {
   component: ComponentType<PluginWidgetProps>
 }
 
-export interface ConsoleThemeDefinition {
-  id: string
-  label: string
-  labelZh?: string
-  cssClass: string
-  tokens: Partial<Record<ThemeTokenKey, string>>
+export interface PluginMeta {
+  name?: string
+  nameZh?: string
+  description?: string
+  descriptionZh?: string
 }
 
 export interface ReliaForgeFrontendPlugin {
   apiVersion: "v1"
   id: string
+  meta?: PluginMeta
   routes?: PluginRouteDeclaration[]
   overviewWidgets?: PluginOverviewWidget[]
-  themes?: ConsoleThemeDefinition[]
 }
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -76,24 +72,27 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  tone?: "neutral" | "success" | "warning" | "danger"
+  tone?: "neutral" | "success" | "warning" | "danger" | "info"
 }
 
 export interface StatePanelProps {
   kind: "loading" | "empty" | "error"
   title: string
-  description: string
+  description?: string
   onRetry?: () => Promise<void>
   action?: ReactNode
   className?: string
 }
 
 export interface PageHeaderProps {
-  eyebrow?: string
-  title: string
-  description: string
+  title: ReactNode
+  meta?: ReactNode
   actions?: ReactNode
+  description?: string
 }
+
+export type DataTableBreakpoint = "sm" | "md" | "lg" | "xl"
+export type DataTableDensity = "compact" | "comfortable"
 
 export interface DataTableColumn<T> {
   id: string
@@ -103,6 +102,12 @@ export interface DataTableColumn<T> {
   sortValue?: (row: T) => string | number
   numeric?: boolean
   align?: "left" | "right"
+  width?: string | number
+  minWidth?: string | number
+  nowrap?: boolean
+  truncate?: boolean
+  hideBelow?: DataTableBreakpoint
+  sticky?: "right"
   className?: string
 }
 
@@ -113,7 +118,10 @@ export interface DataTableProps<T> {
   searchable?: boolean
   searchPlaceholder?: string
   filterFn?: (row: T, query: string) => boolean
+  toolbar?: ReactNode
+  density?: DataTableDensity
   loading?: boolean
+  emptyText?: string
   emptyTitle?: string
   emptyDescription?: string
   initialSortColumnId?: string
@@ -121,6 +129,90 @@ export interface DataTableProps<T> {
   onRowClick?: (row: T) => void
   className?: string
   "data-testid"?: string
+}
+
+export type SheetSize = "md" | "lg" | "xl" | "full"
+
+export interface SheetProps {
+  open: boolean
+  onClose: () => void
+  title: ReactNode
+  meta?: ReactNode
+  actions?: ReactNode
+  size?: SheetSize
+  children: ReactNode
+  className?: string
+  "data-testid"?: string
+}
+
+export interface RowActionItem {
+  id: string
+  label: string
+  icon?: ReactNode
+  onClick: () => void
+  disabled?: boolean
+  tone?: "default" | "danger"
+  title?: string
+}
+
+export type RowActionMenuEntry = RowActionItem | "separator"
+
+export interface RowActionsProps {
+  inline?: RowActionItem[]
+  menu?: RowActionMenuEntry[]
+  menuLabel?: string
+  className?: string
+}
+
+export type StatusTone = "success" | "warning" | "danger" | "info" | "neutral"
+export type StatusVariant = "auto" | "dot" | "badge"
+
+export interface StatusProps extends HTMLAttributes<HTMLElement> {
+  value: string
+  label?: string
+  tone?: StatusTone
+  variant?: StatusVariant
+}
+
+export interface RelativeTimeProps {
+  value: string | number | Date | null | undefined
+  className?: string
+}
+
+export interface StatGridProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode
+  className?: string
+}
+
+export interface StatTileProps extends HTMLAttributes<HTMLDivElement> {
+  label: ReactNode
+  value: ReactNode
+  meta?: ReactNode
+  detail?: ReactNode
+  chart?: ReactNode
+  icon?: ReactNode
+  tone?: "default" | "success" | "warning" | "danger" | "info"
+}
+
+export type SparklineColor =
+  | "accent"
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "muted"
+  | (string & {})
+
+export interface SparklineProps {
+  values: number[]
+  color?: SparklineColor
+  height?: number
+  width?: number
+  fill?: boolean
+  min?: number
+  max?: number
+  label?: string
+  className?: string
 }
 
 export type ActionRiskLevel = "safe" | "reversible" | "sensitive" | "destructive"
@@ -166,6 +258,7 @@ export interface LogViewerProps {
   error?: string | null
   emptyMessage?: string
   defaultShowTimestamps?: boolean
+  defaultWrap?: boolean
   downloadFileName?: string
   className?: string
 }
@@ -262,6 +355,15 @@ export function DataTable<T>(props: DataTableProps<T>) {
   return createElement(Implementation, props)
 }
 
+export const Sheet = createSdkComponent<SheetProps>("Sheet")
+export const RowActions = createSdkComponent<RowActionsProps>("RowActions")
+export const Status = createSdkComponent<StatusProps>("Status")
+export const StatusBadge = createSdkComponent<StatusProps>("StatusBadge")
+export const StatusDot = createSdkComponent<StatusProps>("StatusDot")
+export const RelativeTime = createSdkComponent<RelativeTimeProps>("RelativeTime")
+export const StatGrid = createSdkComponent<StatGridProps>("StatGrid")
+export const StatTile = createSdkComponent<StatTileProps>("StatTile")
+export const Sparkline = createSdkComponent<SparklineProps>("Sparkline")
 export const ConfirmActionDialog = createSdkComponent<ConfirmActionDialogProps>("ConfirmActionDialog")
 export const LogViewer = createSdkComponent<LogViewerProps>("LogViewer")
 export const TerminalPane = createSdkComponent<TerminalPaneProps>("TerminalPane")

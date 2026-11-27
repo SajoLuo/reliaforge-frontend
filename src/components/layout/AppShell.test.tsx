@@ -6,7 +6,6 @@ import { listPlugins } from "@/api/plugins"
 import { AppShell } from "@/components/layout/AppShell"
 import { LocaleProvider } from "@/i18n/LocaleProvider"
 import { PluginRuntimeProvider } from "@/runtime/PluginRuntimeProvider"
-import { ThemeProvider } from "@/theme/ThemeProvider"
 import type { PluginView } from "@/types/plugin"
 
 vi.mock("@/api/plugins", async (importOriginal) => {
@@ -18,7 +17,6 @@ afterEach(() => {
   cleanup()
   vi.resetAllMocks()
   window.localStorage.clear()
-  document.documentElement.removeAttribute("data-console-theme")
 })
 
 describe("AppShell mobile navigation", () => {
@@ -100,9 +98,30 @@ describe("AppShell mobile navigation", () => {
   })
 })
 
-describe("AppShell dynamic plugin navigation and theme switcher", () => {
-  it("renders backend-driven Workspace and Operations nav groups and opt-in theme switcher", async () => {
+describe("AppShell dynamic plugin navigation without footer bloat", () => {
+  it("renders Workspace/Operations/Platform nav groups, routes infra_overview to /, and omits theme/language switchers", async () => {
     const plugins: PluginView[] = [
+      {
+        id: "infra_overview",
+        name: "Infra Overview",
+        version: "1.0.0",
+        description: "Overview",
+        api_version: "v1",
+        state: "running",
+        available_actions: [],
+        dependencies: [],
+        capabilities: [],
+        settings_schema: {},
+        frontend: {
+          category: "Infrastructure",
+          ui_mode: "esm",
+          nav: [{ label: "Overview", label_zh: "总览", path: "", icon: "layers", order: 10, section: "workspace" }],
+          provides_themes: [],
+          entry_url: "/api/v1/plugins/infra_overview/ui/entry.js?v=1",
+          style_url: null,
+        },
+        health: { status: "healthy", details: null },
+      },
       {
         id: "kubernetes",
         name: "Kubernetes",
@@ -117,7 +136,7 @@ describe("AppShell dynamic plugin navigation and theme switcher", () => {
         frontend: {
           category: "Infrastructure",
           ui_mode: "esm",
-          nav: [{ label: "Kubernetes", label_zh: "Kubernetes 集群", path: "", icon: "boxes", order: 20, section: "workspace" }],
+          nav: [{ label: "Kubernetes", label_zh: "Kubernetes", path: "", icon: "boxes", order: 20, section: "workspace" }],
           provides_themes: [],
           entry_url: null,
           style_url: null,
@@ -138,7 +157,7 @@ describe("AppShell dynamic plugin navigation and theme switcher", () => {
         frontend: {
           category: "Ops",
           ui_mode: "esm",
-          nav: [{ label: "Audit Log", label_zh: "操作审计", path: "", icon: "scroll-text", order: 50, section: "operations" }],
+          nav: [{ label: "Audit", label_zh: "审计", path: "", icon: "scroll-text", order: 50, section: "operations" }],
           provides_themes: [],
           entry_url: null,
           style_url: null,
@@ -166,66 +185,30 @@ describe("AppShell dynamic plugin navigation and theme switcher", () => {
         },
         health: { status: "healthy", details: null },
       },
-      {
-        id: "homoshell_theme",
-        name: "Theme",
-        version: "1.0.0",
-        description: "Theme",
-        api_version: "v1",
-        state: "running",
-        available_actions: [],
-        dependencies: [],
-        capabilities: [],
-        settings_schema: {},
-        frontend: {
-          category: "Appearance",
-          ui_mode: "esm",
-          nav: [],
-          provides_themes: ["homoshell-pc98"],
-          entry_url: "/api/v1/plugins/homoshell_theme/ui/entry.js?v=1",
-          style_url: null,
-        },
-        health: { status: "healthy", details: null },
-      },
     ]
     vi.mocked(listPlugins).mockResolvedValue({ plugins })
     const importModule = vi.fn().mockResolvedValue({
-      default: {
-        apiVersion: "v1",
-        id: "homoshell_theme",
-        themes: [
-          {
-            id: "homoshell-pc98",
-            label: "HomoShell PC-98",
-            labelZh: "HomoShell 复古终端",
-            cssClass: "theme-homoshell-pc98",
-            tokens: { canvas: "4 10 8" },
-          },
-        ],
-      },
+      default: { apiVersion: "v1", id: "infra_overview", routes: [{ path: "", element: () => <p>Home</p> }] },
     })
 
-    const user = userEvent.setup()
-    render(
-      <MemoryRouter initialEntries={["/zh/"]}>
+    const { container } = render(
+      <MemoryRouter initialEntries={["/?lang=zh"]}>
         <LocaleProvider>
-          <ThemeProvider>
-            <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
-              <AppShell><p>Body</p></AppShell>
-            </PluginRuntimeProvider>
-          </ThemeProvider>
+          <PluginRuntimeProvider apiOrigin="https://ops.example.com" importModule={importModule}>
+            <AppShell><p>Body</p></AppShell>
+          </PluginRuntimeProvider>
         </LocaleProvider>
       </MemoryRouter>,
     )
 
-    expect(await screen.findByRole("link", { name: "Kubernetes 集群" })).toHaveAttribute("href", "/zh/p/kubernetes")
-    expect(screen.getByRole("link", { name: /操作审计/ })).toHaveAttribute("href", "/zh/p/ops_audit")
-    expect(screen.getByRole("link", { name: "系统信息" })).toHaveAttribute("href", "/zh/p/platform_guide")
-    expect(screen.getByLabelText("已停止")).toBeInTheDocument()
-
-    const select = await screen.findByTestId("appearance-switcher")
-    const combo = select.querySelector("select")!
-    await user.selectOptions(combo, "homoshell-pc98")
-    expect(document.documentElement).toHaveAttribute("data-console-theme", "homoshell-pc98")
+    expect(await screen.findByRole("link", { name: "总览" })).toHaveAttribute("href", "/")
+    expect(screen.getByRole("link", { name: "Kubernetes" })).toHaveAttribute("href", "/p/kubernetes")
+    expect(screen.getByRole("link", { name: "审计" })).toHaveAttribute("href", "/p/ops_audit")
+    expect(screen.getByRole("link", { name: "平台概览" })).toHaveAttribute("href", "/platform")
+    expect(screen.getByRole("link", { name: "系统信息" })).toHaveAttribute("href", "/p/platform_guide")
+    expect(container.querySelector('[data-status="stopped"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-status="healthy"]')).toBeInTheDocument()
+    expect(screen.queryByTestId("appearance-switcher")).not.toBeInTheDocument()
+    expect(screen.getByText("v0.1.0")).toBeInTheDocument()
   })
 })

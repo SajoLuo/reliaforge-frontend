@@ -41,12 +41,20 @@ describe("pluginLoader", () => {
     ).toThrow("unsupported protocol")
   })
 
-  it("validates module apiVersion and plugin id", () => {
+  it("validates module apiVersion, plugin id, meta, routes, and widgets", () => {
     const valid = validatePluginModule(
-      { default: { apiVersion: "v1", id: "proxmox", routes: [] } },
+      {
+        default: {
+          apiVersion: "v1",
+          id: "proxmox",
+          meta: { name: "Proxmox", nameZh: "Proxmox", description: "VE", descriptionZh: "虚拟化" },
+          routes: [],
+        },
+      },
       "proxmox",
     )
     expect(valid.id).toBe("proxmox")
+    expect(valid.meta?.nameZh).toBe("Proxmox")
 
     expect(() => validatePluginModule({ apiVersion: "v2", id: "proxmox" }, "proxmox"))
       .toThrow('apiVersion must be "v1"')
@@ -65,10 +73,10 @@ describe("pluginLoader", () => {
     ).toThrow("invalid overview widget")
     expect(() =>
       validatePluginModule(
-        { default: { apiVersion: "v1", id: "proxmox", themes: [{ id: "a", label: "A", cssClass: "c", tokens: null }] } },
+        { default: { apiVersion: "v1", id: "proxmox", meta: { nameZh: 123 } } },
         "proxmox",
       ),
-    ).toThrow("invalid theme definition")
+    ).toThrow("meta.nameZh must be a string")
   })
 
   it("injects and cleans up stylesheet links during loadPluginModule", async () => {

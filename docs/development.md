@@ -19,20 +19,22 @@ hooks use the same interfaces in both builds.
 
 ## Routes and languages
 
-The console has five route groups:
+The console has six route groups:
 
-- `/` — backend summary and plugin overview widgets;
+- `/` — primary workspace overview when available, otherwise backend summary;
+- `/platform` — backend summary and plugin overview widgets;
 - `/plugins` — plugin list;
 - `/plugins/{plugin_id}` — plugin details;
 - `/p/{plugin_id}/*` — dynamic ESM plugin workspace;
 - `/about` — project and setup links.
 
-English uses these routes directly. Simplified Chinese adds `/zh`, such as
-`/zh/plugins/{plugin_id}`. Normal builds use `BrowserRouter`; demo builds use `HashRouter`.
+Both English and Simplified Chinese share these clean single-prefix routes (legacy `/zh/*` paths
+redirect to `/*`). Normal builds use `BrowserRouter`; demo builds use `HashRouter`.
 
-`LocaleProvider` reads the language from the URL. Switching languages keeps the current page and
-query string. Add every client-generated user message to both locale dictionaries. Do not translate
-plugin IDs, capability names, schema keys, API values, or text returned by the backend.
+`LocaleProvider` detects the locale automatically from `?lang=zh|en` (persisted to `localStorage`),
+saved preference, or browser `navigator.languages`. Add every client-generated user message to both
+locale dictionaries. Do not translate plugin IDs, capability names, schema keys, API values, or text
+returned by the backend.
 
 ## Configuration
 

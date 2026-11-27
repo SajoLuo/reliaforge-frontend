@@ -20,7 +20,7 @@ function splitPathSuffix(target: string): { pathPart: string; suffix: string } {
 export function buildPluginPath(
   pluginId: string,
   subPath: string,
-  pathFor: (path: string) => string,
+  pathFor: (path: string) => string = (path) => path,
 ): string {
   const { pathPart, suffix } = splitPathSuffix(subPath.trim())
   const trimmed = pathPart.replace(/^\/+|\/+$/g, "")

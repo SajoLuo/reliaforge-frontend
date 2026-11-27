@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it } from "vitest"
 import { LocaleProvider } from "@/i18n/LocaleProvider"
 import { PluginLink, PluginRouteContext, usePluginPath } from "@/runtime/pluginRouting"
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  window.localStorage.clear()
+})
 
 function PathProbe({ explicitPluginId }: { explicitPluginId?: string }) {
   const to = usePluginPath(explicitPluginId)
@@ -18,9 +21,9 @@ function PathProbe({ explicitPluginId }: { explicitPluginId?: string }) {
 }
 
 describe("pluginRouting", () => {
-  it("resolves plugin paths and links inside English and Chinese locale trees", () => {
+  it("resolves clean single-prefix plugin paths and links regardless of locale", () => {
     render(
-      <MemoryRouter initialEntries={["/zh/p/proxmox"]}>
+      <MemoryRouter initialEntries={["/p/proxmox?lang=zh"]}>
         <LocaleProvider>
           <PluginRouteContext.Provider value="proxmox">
             <PathProbe />
@@ -29,9 +32,9 @@ describe("pluginRouting", () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByTestId("root-path")).toHaveTextContent("/zh/p/proxmox")
-    expect(screen.getByTestId("sub-path")).toHaveTextContent("/zh/p/proxmox/nodes/pve-01?tab=rrd")
-    expect(screen.getByRole("link", { name: "Tasks" })).toHaveAttribute("href", "/zh/p/proxmox/tasks")
+    expect(screen.getByTestId("root-path")).toHaveTextContent("/p/proxmox")
+    expect(screen.getByTestId("sub-path")).toHaveTextContent("/p/proxmox/nodes/pve-01?tab=rrd")
+    expect(screen.getByRole("link", { name: "Tasks" })).toHaveAttribute("href", "/p/proxmox/tasks")
   })
 
   it("supports explicit pluginId overrides and throws outside plugin context", () => {

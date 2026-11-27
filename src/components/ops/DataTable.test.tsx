@@ -7,22 +7,24 @@ import { DataTable } from "@/components/ops/DataTable"
 interface NodeRow {
   name: string
   cpu: number
+  region: string
 }
 
 const columns: DataTableColumn<NodeRow>[] = [
-  { id: "name", header: "Node", accessor: (row) => row.name, cell: (row) => row.name },
-  { id: "cpu", header: "CPU %", accessor: (row) => row.cpu, cell: (row) => `${row.cpu}%`, numeric: true, align: "right" },
+  { id: "name", header: "Node", accessor: (row) => row.name, cell: (row) => row.name, truncate: true, width: 160 },
+  { id: "region", header: "Region", accessor: (row) => row.region, cell: (row) => row.region, hideBelow: "md" },
+  { id: "cpu", header: "CPU %", accessor: (row) => row.cpu, cell: (row) => `${row.cpu}%`, numeric: true, align: "right", sticky: "right" },
 ]
 
 afterEach(cleanup)
 
 describe("DataTable", () => {
-  it("renders rows, supports sorting, search filtering, and row click", async () => {
+  it("renders rows, supports sorting, search filtering, merged toolbar, count, and row click", async () => {
     const user = userEvent.setup()
     const onRowClick = vi.fn()
     const rows: NodeRow[] = [
-      { name: "pve-02", cpu: 45 },
-      { name: "pve-01", cpu: 12 },
+      { name: "pve-02", region: "lab-a", cpu: 45 },
+      { name: "pve-01", region: "lab-b", cpu: 12 },
     ]
 
     render(
@@ -31,26 +33,31 @@ describe("DataTable", () => {
         rows={rows}
         rowKey={(row) => row.name}
         searchable
+        toolbar={<button type="button">Filter active</button>}
         onRowClick={onRowClick}
       />,
     )
 
+    expect(screen.getByRole("button", { name: "Filter active" })).toBeInTheDocument()
+    expect(screen.getByTestId("data-table-count")).toHaveTextContent("2")
+
     const cpuButton = screen.getByRole("button", { name: "CPU %" })
     await user.click(cpuButton)
     const cellsAsc = screen.getAllByRole("cell").map((c) => c.textContent)
-    expect(cellsAsc).toEqual(["pve-01", "12%", "pve-02", "45%"])
+    expect(cellsAsc).toEqual(["pve-01", "lab-b", "12%", "pve-02", "lab-a", "45%"])
 
     await user.click(cpuButton)
     const cellsDesc = screen.getAllByRole("cell").map((c) => c.textContent)
-    expect(cellsDesc).toEqual(["pve-02", "45%", "pve-01", "12%"])
+    expect(cellsDesc).toEqual(["pve-02", "lab-a", "45%", "pve-01", "lab-b", "12%"])
 
     const searchInput = screen.getByRole("searchbox")
     await user.type(searchInput, "pve-01")
     expect(screen.getAllByRole("row")).toHaveLength(2)
+    expect(screen.getByTestId("data-table-count")).toHaveTextContent("1 / 2")
     expect(screen.getByText("pve-01")).toBeInTheDocument()
 
     await user.click(screen.getByText("pve-01"))
-    expect(onRowClick).toHaveBeenCalledWith({ name: "pve-01", cpu: 12 })
+    expect(onRowClick).toHaveBeenCalledWith({ name: "pve-01", region: "lab-b", cpu: 12 })
 
     const row = screen.getByText("pve-01").closest("tr")!
     row.focus()
@@ -62,7 +69,7 @@ describe("DataTable", () => {
     expect(screen.getAllByRole("row")).toHaveLength(3)
   })
 
-  it("renders loading and empty states", () => {
+  it("renders loading and empty states with emptyText", () => {
     const { rerender } = render(
       <DataTable columns={columns} rows={[]} rowKey={(row) => row.name} loading />,
     )
@@ -73,10 +80,9 @@ describe("DataTable", () => {
         columns={columns}
         rows={[]}
         rowKey={(row) => row.name}
-        emptyTitle="Nothing here"
-        emptyDescription="Zero records"
+        emptyText="No nodes found"
       />,
     )
-    expect(screen.getByTestId("data-table-empty")).toHaveTextContent("Nothing here")
+    expect(screen.getByTestId("data-table-empty")).toHaveTextContent("No nodes found")
   })
 })

@@ -39,9 +39,22 @@ describe("hostBridge and @reliaforge/plugin-sdk", () => {
         <sdk.Card>
           <sdk.CardHeader>Header</sdk.CardHeader>
           <sdk.CardContent>
-            <sdk.PageHeader title="Ops" description="Ready" />
+            <sdk.PageHeader title="Ops" meta={<span>v1</span>} />
             <sdk.Badge tone="success">OK</sdk.Badge>
+            <sdk.Status value="healthy" />
+            <sdk.RelativeTime value={new Date().toISOString()} />
+            <sdk.StatGrid>
+              <sdk.StatTile
+                label="CPU"
+                value="12%"
+                chart={<sdk.Sparkline values={[10, 12, 14]} />}
+              />
+            </sdk.StatGrid>
+            <sdk.RowActions inline={[{ id: "open", label: "Open", onClick: () => undefined }]} />
             <sdk.Button type="button">Action</sdk.Button>
+            <sdk.Sheet open={false} onClose={() => undefined} title="Hidden">
+              Body
+            </sdk.Sheet>
           </sdk.CardContent>
         </sdk.Card>
       </MemoryRouter>,
@@ -49,6 +62,8 @@ describe("hostBridge and @reliaforge/plugin-sdk", () => {
 
     expect(screen.getByText("Header")).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Ops" })).toBeInTheDocument()
+    expect(screen.getByText("Healthy")).toBeInTheDocument()
+    expect(screen.getByText("12%")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Action" })).toBeInTheDocument()
   })
 

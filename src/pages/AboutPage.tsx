@@ -11,36 +11,35 @@ export function AboutPage() {
     { title: t("about.safetyTitle"), body: t("about.safetyBody"), icon: ShieldCheck },
   ] as const
   return (
-    <div className="space-y-12">
-      <PageHeader eyebrow={t("about.eyebrow")} title={t("about.title")} description={t("about.description")} />
-      <section className="grid border-y md:grid-cols-3 md:divide-x">
+    <div className="space-y-8">
+      <PageHeader title={t("about.title")} />
+      <section className="grid border-y border-line md:grid-cols-3 md:divide-x">
         {principles.map(({ title, body, icon: Icon }) => (
-          <article key={title} className="border-b px-1 py-7 last:border-b-0 md:border-b-0 md:px-7 md:first:pl-0 md:last:pr-0">
-            <Icon className="h-5 w-5 text-accent" aria-hidden="true" />
-            <h2 className="mt-5 text-base font-semibold tracking-tight">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+          <article key={title} className="border-b border-line px-1 py-5 last:border-b-0 md:border-b-0 md:px-6 md:first:pl-0 md:last:pr-0">
+            <Icon className="h-4 w-4 text-accent" aria-hidden="true" />
+            <h2 className="mt-3 text-sm font-semibold text-ink">{title}</h2>
+            <p className="mt-1.5 text-xs leading-5 text-muted">{body}</p>
           </article>
         ))}
       </section>
-      <section className="grid gap-6 border-b pb-10 md:grid-cols-[0.7fr_1.3fr]">
+      <section className="grid gap-6 border-b border-line pb-8 md:grid-cols-[0.7fr_1.3fr]">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">ReliaForge</p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight">{t("about.startTitle")}</h2>
+          <h2 className="text-base font-semibold text-ink">{t("about.startTitle")}</h2>
         </div>
         <div>
-          <ol className="space-y-4 text-sm leading-6 text-muted">
+          <ol className="space-y-3 text-xs leading-5 text-muted">
             {[t("about.stepBackend"), t("about.stepPlugins"), t("about.stepTemplate")].map((step, index) => (
-              <li key={step} className="grid grid-cols-[2rem_1fr] gap-3 border-t pt-4 first:border-t-0 first:pt-0">
+              <li key={step} className="grid grid-cols-[2rem_1fr] gap-3 border-t border-line pt-3 first:border-t-0 first:pt-0">
                 <span className="font-mono text-xs text-accent">0{index + 1}</span>
                 <span>{step}</span>
               </li>
             ))}
           </ol>
-          <div className="mt-7 flex flex-wrap gap-5 text-sm font-medium text-accent">
+          <div className="mt-5 flex flex-wrap gap-5 text-xs font-medium text-accent">
             <a className="underline underline-offset-4 focus-visible:outline focus-visible:outline-2" href={`${guideRoot}/getting-started.html`}>{t("about.quickStartLink")}</a>
             <a className="underline underline-offset-4 focus-visible:outline focus-visible:outline-2" href={`${guideRoot}/plugin-development.html`}>{t("about.pluginGuideLink")}</a>
           </div>
-          <p className="mt-7 text-xs text-muted">{t("about.copyright")}</p>
+          <p className="mt-5 text-xs text-muted">{t("about.copyright")}</p>
         </div>
       </section>
     </div>

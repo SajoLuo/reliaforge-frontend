@@ -121,8 +121,8 @@ const demoCatalog = parsePluginListResponse({
         ui_mode: "esm",
         nav: [
           {
-            label: "Infrastructure",
-            label_zh: "基础设施全景",
+            label: "Overview",
+            label_zh: "总览",
             path: "",
             icon: "layers",
             order: 10,
@@ -156,8 +156,8 @@ const demoCatalog = parsePluginListResponse({
         ui_mode: "esm",
         nav: [
           {
-            label: "Proxmox VE",
-            label_zh: "Proxmox VE",
+            label: "Proxmox",
+            label_zh: "Proxmox",
             path: "",
             icon: "server",
             order: 20,
@@ -203,41 +203,6 @@ const demoCatalog = parsePluginListResponse({
       health: { status: "healthy", details: { read_only: true } },
     },
     {
-      id: "observability",
-      name: "Observability",
-      version: "1.0.0",
-      description: "Queries Prometheus metrics, Loki logs, and Alertmanager alerts and silences.",
-      api_version: "v1",
-      state: "running",
-      available_actions: [],
-      dependencies: [{ id: "ops_audit", version: "^1.0.0", optional: true }],
-      capabilities: ["observability.logs", "observability.metrics", "observability.alerts"],
-      settings_schema: {
-        additionalProperties: false,
-        properties: {
-          prometheus_url: { type: "string", default: "https://metrics.example.com" },
-          loki_url: { type: "string", default: "https://logs.example.com" },
-        },
-        title: "ObservabilitySettings",
-        type: "object",
-      },
-      frontend: {
-        category: "Observability",
-        ui_mode: "esm",
-        nav: [
-          {
-            label: "Logs & Alerts",
-            label_zh: "日志与告警",
-            path: "",
-            icon: "activity",
-            order: 40,
-            section: "workspace",
-          },
-        ],
-      },
-      health: { status: "healthy", details: { read_only: true } },
-    },
-    {
       id: "gitops_argocd",
       name: "Argo CD GitOps",
       version: "1.0.0",
@@ -261,10 +226,45 @@ const demoCatalog = parsePluginListResponse({
         ui_mode: "esm",
         nav: [
           {
-            label: "Argo CD",
-            label_zh: "GitOps 发布",
+            label: "GitOps",
+            label_zh: "GitOps",
             path: "",
             icon: "git-branch",
+            order: 40,
+            section: "workspace",
+          },
+        ],
+      },
+      health: { status: "healthy", details: { read_only: true } },
+    },
+    {
+      id: "observability",
+      name: "Observability",
+      version: "1.0.0",
+      description: "Queries Prometheus metrics, Loki logs, and Alertmanager alerts and silences.",
+      api_version: "v1",
+      state: "running",
+      available_actions: [],
+      dependencies: [{ id: "ops_audit", version: "^1.0.0", optional: true }],
+      capabilities: ["observability.logs", "observability.metrics", "observability.alerts"],
+      settings_schema: {
+        additionalProperties: false,
+        properties: {
+          prometheus_url: { type: "string", default: "https://metrics.example.com" },
+          loki_url: { type: "string", default: "https://logs.example.com" },
+        },
+        title: "ObservabilitySettings",
+        type: "object",
+      },
+      frontend: {
+        category: "Observability",
+        ui_mode: "esm",
+        nav: [
+          {
+            label: "Observability",
+            label_zh: "可观测性",
+            path: "",
+            icon: "activity",
             order: 50,
             section: "workspace",
           },
@@ -295,34 +295,16 @@ const demoCatalog = parsePluginListResponse({
         ui_mode: "esm",
         nav: [
           {
-            label: "Audit Log",
-            label_zh: "操作审计",
+            label: "Audit",
+            label_zh: "审计",
             path: "",
             icon: "scroll-text",
-            order: 90,
+            order: 10,
             section: "operations",
           },
         ],
       },
       health: { status: "healthy", details: { persistent: false } },
-    },
-    {
-      id: "homoshell_theme",
-      name: "HomoShell Theme",
-      version: "1.0.0",
-      description: "Optional appearance plugin providing the retro homoshell-pc98 console theme.",
-      api_version: "v1",
-      state: "running",
-      available_actions: [],
-      dependencies: [],
-      capabilities: [],
-      settings_schema: { additionalProperties: false, properties: {}, type: "object" },
-      frontend: {
-        category: "Appearance",
-        ui_mode: "esm",
-        provides_themes: ["homoshell-pc98"],
-      },
-      health: { status: "healthy", details: { theme: "homoshell-pc98" } },
     },
   ],
 })
@@ -330,7 +312,7 @@ const demoCatalog = parsePluginListResponse({
 const demoStatus = parsePlatformStatusResponse({
   status: "healthy",
   version: "0.1.0",
-  plugins: { total: 9, running: 9, degraded: 0, stopped: 0, error: 0 },
+  plugins: { total: 8, running: 8, degraded: 0, stopped: 0, error: 0 },
 })
 
 function checkSignal(signal?: AbortSignal) {

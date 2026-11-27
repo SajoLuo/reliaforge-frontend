@@ -1,19 +1,18 @@
-export interface PageHeaderProps {
-  eyebrow?: string
-  title: string
-  description: string
-  actions?: React.ReactNode
-}
+import type { PageHeaderProps } from "@reliaforge/plugin-sdk"
 
-export function PageHeader({ eyebrow, title, description, actions }: PageHeaderProps) {
+export type { PageHeaderProps }
+
+export function PageHeader({ title, meta, actions, description }: PageHeaderProps) {
   return (
-    <header className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-      <div className="max-w-2xl">
-        {eyebrow ? <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent">{eyebrow}</p> : null}
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-ink">{title}</h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-muted">{description}</p>
+    <header className="flex min-h-12 flex-col justify-center gap-3 border-b border-line pb-3.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <h1 className="truncate text-xl font-semibold tracking-tight text-ink">{title}</h1>
+          {meta ? <div className="flex flex-wrap items-center gap-2 text-xs text-muted">{meta}</div> : null}
+        </div>
+        {description ? <p className="mt-1 text-xs leading-5 text-muted">{description}</p> : null}
       </div>
-      {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
+      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </header>
   )
 }
