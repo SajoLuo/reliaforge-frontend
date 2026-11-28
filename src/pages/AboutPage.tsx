@@ -4,7 +4,7 @@ import { useLocale } from "@/i18n/useLocale"
 
 export function AboutPage() {
   const { locale, t } = useLocale()
-  const guideRoot = `https://reliaforge.dev/${locale === "zh" ? "zh/" : ""}guide`
+  const guideRoot = `https://docs.reliaforge.dev/${locale === "zh" ? "zh/" : ""}guide`
   const principles = [
     { title: t("about.manifestTitle"), body: t("about.manifestBody"), icon: BookOpen },
     { title: t("about.lifecycleTitle"), body: t("about.lifecycleBody"), icon: Code2 },

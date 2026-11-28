@@ -7,7 +7,7 @@ connects to the [ReliaForge backend](https://github.com/ReliaForge/reliaforge-ba
 status, health details, dependencies, configuration fields, and available start, stop, and restart
 controls. Users access each plugin's service through its own API or author-provided interface.
 
-- [Project documentation](https://reliaforge.dev/)
+- [Project documentation](https://docs.reliaforge.dev/)
 - [Read-only online demo](https://demo.reliaforge.dev/)
 
 ## Run locally

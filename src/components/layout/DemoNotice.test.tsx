@@ -10,7 +10,7 @@ describe("DemoNotice", () => {
     expect(screen.getByLabelText("Read-only demo")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: /Run locally/ })).toHaveAttribute(
       "href",
-      "https://reliaforge.dev/guide/getting-started.html",
+      "https://docs.reliaforge.dev/guide/getting-started.html",
     )
   })
 })

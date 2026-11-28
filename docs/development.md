@@ -53,7 +53,7 @@ npm run test:e2e:demo
 The [online demo](https://demo.reliaforge.dev/) validates the same response shapes as a normal
 build. It reads separate copies of saved `demo` and `runbook` data, offers no lifecycle actions, and
 makes no API requests. Use the
-[project quick start](https://reliaforge.dev/guide/getting-started.html) to run the backend locally.
+[project quick start](https://docs.reliaforge.dev/guide/getting-started.html) to run the backend locally.
 
 ## Add a UI feature
 

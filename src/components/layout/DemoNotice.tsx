@@ -4,8 +4,8 @@ import { useLocale } from "@/i18n/useLocale"
 export function DemoNotice() {
   const { locale, t } = useLocale()
   const quickStartUrl = locale === "zh"
-    ? "https://reliaforge.dev/zh/guide/getting-started.html"
-    : "https://reliaforge.dev/guide/getting-started.html"
+    ? "https://docs.reliaforge.dev/zh/guide/getting-started.html"
+    : "https://docs.reliaforge.dev/guide/getting-started.html"
   return (
     <aside
       className="flex min-h-9 flex-wrap items-center justify-center gap-x-2 gap-y-1 border-b border-line bg-warning-soft px-4 py-1.5 text-center text-xs text-warning-ink"

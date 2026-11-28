@@ -64,7 +64,7 @@ test("demo applies ?lang query override cleanly without /zh route prefix", async
   )
   await expect(page.getByRole("link", { name: "在本地运行并启停插件" })).toHaveAttribute(
     "href",
-    "https://reliaforge.dev/zh/guide/getting-started.html",
+    "https://docs.reliaforge.dev/zh/guide/getting-started.html",
   )
 
   // Persisted in localStorage['rf.locale'] across clean navigations without ?lang

@@ -6,8 +6,8 @@ ReliaForge 是托管 Python 服务的插件式运维平台。本仓库的 React 
 [ReliaForge 后端](https://github.com/ReliaForge/reliaforge-backend)，显示插件状态、健康详情、依赖、
 配置项和当前可用的启停操作。使用插件的业务服务时，调用它自己的 API，或使用作者提供的界面。
 
-- [项目文档](https://reliaforge.dev/zh/)
-- [只读在线演示](https://demo.reliaforge.dev/)
+- [项目文档](https://docs.reliaforge.dev/zh/)
+- [只读在线演示](https://demo.reliaforge.dev/?lang=zh)
 
 ## 本地运行
 

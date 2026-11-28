@@ -50,7 +50,7 @@ npm run test:e2e:demo
 
 [在线演示](https://demo.reliaforge.dev/)校验与正常构建相同的响应结构。它读取相互独立的
 `demo` 和 `runbook` 静态数据，不提供启停操作，也不发送 API 请求。按照
-[项目快速开始](https://reliaforge.dev/zh/guide/getting-started.html)可以在本地运行后端。
+[项目快速开始](https://docs.reliaforge.dev/zh/guide/getting-started.html)可以在本地运行后端。
 
 ## 添加界面功能
 
