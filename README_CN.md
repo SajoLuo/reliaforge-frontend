@@ -2,16 +2,14 @@
 
 [English](README.md)
 
-ReliaForge 是托管 Python 服务的插件式运维平台。本仓库的 React 控制台连接
-[ReliaForge 后端](https://github.com/ReliaForge/reliaforge-backend)，显示插件状态、健康详情、依赖、
-配置项和当前可用的启停操作。使用插件的业务服务时，调用它自己的 API，或使用作者提供的界面。
+配合 [`reliaforge-backend`](https://github.com/ReliaForge/reliaforge-backend) 使用的 React 控制台与 `@reliaforge/plugin-sdk`，负责主导航壳层、动态加载插件 ESM 前端包以及插件启停控制。
 
-- [项目文档](https://docs.reliaforge.dev/zh/)
-- [只读在线演示](https://demo.reliaforge.dev/?lang=zh)
+- [在线文档](https://docs.reliaforge.dev/zh/)
+- [在线交互演示](https://demo.reliaforge.dev/?lang=zh)
 
 ## 本地运行
 
-需要 Node.js 20 或更高版本、npm 10 或更高版本。如需实时数据，还要先运行 ReliaForge 后端。
+需要 Node.js 20+、npm 10+，并先在 `127.0.0.1:8000` 启动 `reliaforge-backend`。
 
 ```bash
 cp .env.example .env
@@ -19,39 +17,27 @@ npm ci
 npm run dev
 ```
 
-打开 `http://127.0.0.1:5530`。示例会连接到 `http://127.0.0.1:8000` 的后端。
+打开 `http://127.0.0.1:5530`。后端 `.env.example` 默认已把 `http://127.0.0.1:5530` 加入 `RELIAFORGE_CORS_ORIGINS`。
 
-启动后端前，使用后端的 `.env.example`，或把 `RELIAFORGE_CORS_ORIGINS` 设为
-`["http://127.0.0.1:5530"]`，允许浏览器从这个地址连接。
+`VITE_RELIAFORGE_API_URL` 可指定后端地址；未设置时默认请求同源 `/api/v1`。切勿在 `VITE_*` 变量中写入任何密钥。
 
-`VITE_RELIAFORGE_API_URL` 用于设置后端来源。没有设置时，控制台使用同源 `/api/v1`。
-不要把 API 密钥或共享密钥放入 `VITE_*` 变量，因为浏览器构建文件都是公开的。
+## 在线演示构建
 
-## 在线演示
-
-[在线演示](https://demo.reliaforge.dev/)使用与正常构建相同的页面和响应校验，但读取
-`demo` 和 `runbook` 插件的静态数据。它没有后端，不发送管理请求，也不显示启动、停止或
-重启按钮。
-
-在本地构建和预览演示：
+[demo.reliaforge.dev](https://demo.reliaforge.dev/?lang=zh) 纯浏览器运行，内置六个官方插件的模拟数据与交互视图（含模拟 LXC 终端与滚动日志），不发起任何 `/api/v1` 请求。
 
 ```bash
 npm run build:demo
 npm run preview:demo
 ```
 
-中英文共用无前缀路由，自动跟随浏览器语言（也可通过 `?lang=zh` / `?lang=en` 指定）。
+界面语言默认跟随浏览器设置，也可通过 `?lang=zh` / `?lang=en` 覆盖。
 
-## API 接口
-
-控制台使用：
+## 壳层调用的管理接口
 
 - `GET /api/v1/status`
 - `GET /api/v1/plugins`
 - `GET /api/v1/plugins/{plugin_id}`
 - `POST /api/v1/plugins/{plugin_id}/{start|stop|restart}`
-
-每个插件响应都包含 `available_actions`。控制台只展示这些操作，后端会认证并校验每次请求。
 
 ## 验证
 
@@ -64,26 +50,20 @@ npm run build
 npm run build:demo
 npm run check:hygiene
 npm audit --audit-level=high
-```
-
-浏览器测试需要 Playwright Chromium：
-
-```bash
 npx playwright install chromium
 npm run test:e2e
 npm run test:e2e:demo
 ```
 
-检查运行中的后端是否符合前端契约：
+对接本地运行中的后端做契约校验：
 
 ```bash
 RELIAFORGE_OPENAPI_URL=http://127.0.0.1:8000/api/v1/openapi.json npm run check:contract
 RELIAFORGE_E2E_LIVE=1 RELIAFORGE_E2E_API_URL=http://127.0.0.1:8000 npm run test:e2e
 ```
 
-源码结构见[前端开发](docs/zh/development.md)，控制台展示的字段见
-[插件数据](docs/zh/plugin-contract.md)。
+内部目录说明见[前端开发](docs/zh/development.md)与[插件契约](docs/zh/plugin-contract.md)。
 
 ## 许可证
 
-MIT © 2026 Sajo Luo。参阅 [LICENSE](LICENSE)。
+MIT © 2026 Sajo Luo。详见 [LICENSE](LICENSE)。

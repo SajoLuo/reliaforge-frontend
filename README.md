@@ -2,17 +2,14 @@
 
 [简体中文](README_CN.md)
 
-ReliaForge is a plugin-based operations platform for hosting Python services. This React console
-connects to the [ReliaForge backend](https://github.com/ReliaForge/reliaforge-backend) to show plugin
-status, health details, dependencies, configuration fields, and available start, stop, and restart
-controls. Users access each plugin's service through its own API or author-provided interface.
+React web console and `@reliaforge/plugin-sdk` for [`reliaforge-backend`](https://github.com/ReliaForge/reliaforge-backend). It renders the shared navigation shell, loads runtime ESM plugin bundles, and manages plugin start/stop/restart actions.
 
-- [Project documentation](https://docs.reliaforge.dev/)
-- [Read-only online demo](https://demo.reliaforge.dev/)
+- [Documentation](https://docs.reliaforge.dev/)
+- [Interactive online demo](https://demo.reliaforge.dev/)
 
 ## Run locally
 
-You need Node.js 20 or newer, npm 10 or newer, and a running ReliaForge backend for live data.
+Requires Node.js 20+, npm 10+, and a running `reliaforge-backend` instance on `127.0.0.1:8000`.
 
 ```bash
 cp .env.example .env
@@ -20,43 +17,27 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:5530`. The example connects to the backend at
-`http://127.0.0.1:8000`.
+Open `http://127.0.0.1:5530`. Make sure `RELIAFORGE_CORS_ORIGINS` on the backend includes `http://127.0.0.1:5530` (already set in the backend `.env.example`).
 
-On the backend, use its `.env.example` or set `RELIAFORGE_CORS_ORIGINS` to
-`["http://127.0.0.1:5530"]` before starting it so the browser can connect from this origin.
+`VITE_RELIAFORGE_API_URL` overrides the backend origin; when unset, the console calls same-origin `/api/v1`. Do not place secrets in `VITE_*` variables.
 
-`VITE_RELIAFORGE_API_URL` sets the backend origin. If it is absent, the console uses same-origin
-`/api/v1`. Never put an API key or shared secret in a `VITE_*` variable because browser build files
-are public.
+## Online demo build
 
-## Online demo
-
-The [online demo](https://demo.reliaforge.dev/) uses the same pages and response validation as a
-normal build, but reads saved data for the `demo` and `runbook` plugins. It has no backend, sends no
-management requests, and shows no start, stop, or restart buttons.
-
-Build and preview the demo locally:
+[demo.reliaforge.dev](https://demo.reliaforge.dev/) runs in the browser with static plugin metadata and built-in mock views for `infra_overview`, `proxmox`, `kubernetes`, `gitops_argocd`, `observability`, and `ops_audit`, without calling `/api/v1`.
 
 ```bash
 npm run build:demo
 npm run preview:demo
 ```
 
-English and Simplified Chinese share clean routes without a language prefix, following browser language
-automatically (or `?lang=zh` / `?lang=en`).
+UI language follows the browser locale automatically (`?lang=zh` or `?lang=en` overrides it).
 
-## API endpoints
-
-The console uses:
+## Management endpoints used by the shell
 
 - `GET /api/v1/status`
 - `GET /api/v1/plugins`
 - `GET /api/v1/plugins/{plugin_id}`
 - `POST /api/v1/plugins/{plugin_id}/{start|stop|restart}`
-
-Each plugin response includes `available_actions`. The console displays only those actions, and the
-backend authenticates and validates every request.
 
 ## Verification
 
@@ -69,25 +50,19 @@ npm run build
 npm run build:demo
 npm run check:hygiene
 npm audit --audit-level=high
-```
-
-Browser tests require Playwright Chromium:
-
-```bash
 npx playwright install chromium
 npm run test:e2e
 npm run test:e2e:demo
 ```
 
-To check a running backend against the frontend contract:
+Contract check against a live backend:
 
 ```bash
 RELIAFORGE_OPENAPI_URL=http://127.0.0.1:8000/api/v1/openapi.json npm run check:contract
 RELIAFORGE_E2E_LIVE=1 RELIAFORGE_E2E_API_URL=http://127.0.0.1:8000 npm run test:e2e
 ```
 
-See [Development](docs/development.md) for the source layout and
-[Plugin data](docs/plugin-contract.md) for fields shown by the console.
+See [Development](docs/development.md) and [Plugin contract](docs/plugin-contract.md) for internal details.
 
 ## License
 

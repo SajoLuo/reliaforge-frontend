@@ -276,7 +276,7 @@ export function DemoInfraOverviewWorkspace() {
         meta={
           <>
             <Status value="healthy" label={copy.allHealthy} />
-            <span>{tick === 0 ? copy.snapshot : copy.refreshed}</span>
+            {tick > 0 ? <span>{copy.refreshed}</span> : null}
           </>
         }
         actions={

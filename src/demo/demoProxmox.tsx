@@ -111,8 +111,7 @@ function runMockCommand(cmd: string, guestName: string): string[] {
 
 function MockLxcTerminal({ guest }: { guest: DemoGuest }) {
   const [history, setHistory] = useState<string[]>([
-    `Connected to pve-prod-01 / LXC ${guest.vmid} (${guest.name}) via simulated termproxy.`,
-    "Type 'help', 'uptime', 'df -h', 'free -h', 'ps', or 'clear'.",
+    `LXC ${guest.vmid} (${guest.name}) · commands: help, uptime, df -h, free -h, ps, ls, clear`,
     "",
   ])
   const [input, setInput] = useState("")
@@ -201,7 +200,7 @@ function buildProxmoxColumns(
             {copy.shell}
           </Button>
         ) : (
-          <span className="text-xs text-muted">{copy.readOnly}</span>
+          <span className="text-xs text-muted">-</span>
         ),
     },
   ]
@@ -306,7 +305,6 @@ export function DemoProxmoxWorkspace() {
         open={terminalGuest !== null}
         onClose={() => setTerminalGuest(null)}
         title={terminalGuest ? `LXC ${terminalGuest.vmid} · ${terminalGuest.name}` : ""}
-        meta={copy.shellMeta}
         size="lg"
       >
         {terminalGuest ? <MockLxcTerminal guest={terminalGuest} /> : null}

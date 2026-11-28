@@ -177,7 +177,7 @@ export function DemoAuditWorkspace() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title={copy.title} meta={copy.meta} />
+      <PageHeader title={copy.title} />
       <DataTable
         columns={columns}
         rows={AUDIT_ROWS}

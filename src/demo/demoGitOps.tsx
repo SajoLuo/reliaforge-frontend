@@ -97,15 +97,7 @@ export function DemoGitOpsWorkspace() {
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="GitOps"
-        meta={
-          <>
-            <span>{copy.summary}</span>
-            <Badge tone="warning">{copy.readOnly}</Badge>
-          </>
-        }
-      />
+      <PageHeader title="GitOps" meta={copy.summary} />
 
       <DataTable
         columns={columns}
