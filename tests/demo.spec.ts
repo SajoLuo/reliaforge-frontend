@@ -8,7 +8,7 @@ function observeApiRequests(page: Page): string[] {
   return apiRequests
 }
 
-test("read-only demo explores the real console without API traffic or lifecycle controls", async ({ page }, testInfo) => {
+test("read-only demo explores all six interactive workspaces without API traffic or lifecycle controls", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "demo-chromium", "Desktop demo journey")
   const apiRequests = observeApiRequests(page)
 
@@ -16,7 +16,47 @@ test("read-only demo explores the real console without API traffic or lifecycle 
   await expect(page).toHaveURL(/#\/$/)
   await expect(page.getByTestId("demo-notice")).toContainText("Read-only demo")
   await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible()
-  await expect(page.getByTestId("plugin-card")).toHaveCount(3)
+  await expect(page.getByRole("link", { name: "pve-prod-01" })).toBeVisible()
+  await expect(page.getByText("Payments API")).toBeVisible()
+
+  await page.getByRole("link", { name: "Proxmox", exact: true }).click()
+  await expect(page).toHaveURL(/#\/p\/proxmox$/)
+  await expect(page.getByRole("heading", { name: "Proxmox", exact: true })).toBeVisible()
+  await expect(page.getByText("ingress-gw-01")).toBeVisible()
+  await page.getByRole("button", { name: "Shell" }).first().click()
+  await expect(page.getByLabel("Mock terminal command")).toBeVisible()
+  await page.getByLabel("Mock terminal command").fill("uptime")
+  await page.getByLabel("Mock terminal command").press("Enter")
+  await expect(page.getByText(/load average: 0\.14/)).toBeVisible()
+  await page.keyboard.press("Escape")
+
+  await page.getByRole("link", { name: "Kubernetes", exact: true }).click()
+  await expect(page).toHaveURL(/#\/p\/kubernetes$/)
+  await expect(page.getByRole("heading", { name: "Kubernetes", exact: true })).toBeVisible()
+  await expect(page.getByText("payments-api", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Logs" }).first().click()
+  await expect(page.getByText(/listening=0\.0\.0\.0:8080/)).toBeVisible()
+  await page.keyboard.press("Escape")
+
+  await page.getByRole("link", { name: "GitOps", exact: true }).click()
+  await expect(page).toHaveURL(/#\/p\/gitops_argocd$/)
+  await expect(page.getByRole("heading", { name: "GitOps", exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Tree" }).first().click()
+  await expect(page.getByText("HTTPRoute", { exact: true })).toBeVisible()
+  await page.keyboard.press("Escape")
+
+  await page.getByRole("link", { name: "Observability", exact: true }).click()
+  await expect(page).toHaveURL(/#\/p\/observability$/)
+  await expect(page.getByRole("heading", { name: "Observability", exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Metrics" }).click()
+  await expect(page.getByText("P95 Latency", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Alerts" }).click()
+  await expect(page.getByText("NodeDiskMaintenance", { exact: true })).toBeVisible()
+
+  await page.getByRole("link", { name: "Audit", exact: true }).click()
+  await expect(page).toHaveURL(/#\/p\/ops_audit$/)
+  await expect(page.getByRole("heading", { name: "Operations Audit", exact: true })).toBeVisible()
+  await expect(page.getByText("k8s.rollout_restart", { exact: true })).toBeVisible()
 
   await page.getByRole("link", { name: "Plugins", exact: true }).click()
   await expect(page).toHaveURL(/#\/plugins$/)
@@ -37,10 +77,6 @@ test("read-only demo explores the real console without API traffic or lifecycle 
   await expect(page).toHaveURL(/#\/plugins\/runbook$/)
   await expect(page.getByRole("heading", { name: "Runbook Preview" })).toBeVisible()
   await expect(page.getByTestId("demo-notice")).toBeVisible()
-
-  await page.getByRole("link", { name: "Kubernetes", exact: true }).click()
-  await expect(page).toHaveURL(/#\/p\/kubernetes$/)
-  await expect(page.getByRole("heading", { name: "Live backend required" })).toBeVisible()
   expect(apiRequests).toEqual([])
 })
 

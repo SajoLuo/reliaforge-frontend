@@ -17,8 +17,10 @@ function renderUnavailableWorkspace(
   plugin: PluginView,
   detailLink: ReactNode,
   t: Translator,
+  hasLoadedModule: boolean,
 ): ReactNode | null {
   if (isDemo) {
+    if (hasLoadedModule) return null
     return (
       <StatePanel
         kind="empty"
@@ -105,10 +107,14 @@ function renderRuntimePendingOrError(
   runtime: ReturnType<typeof usePluginRuntime>,
   t: Translator,
 ): ReactNode {
-  const unavailable = renderUnavailableWorkspace(plugin, detailLink, t)
+  const loadedModule = runtime.loadedPlugins[plugin.id]
+  if (isDemo && !loadedModule && runtime.catalogLoading) {
+    return <StatePanel kind="loading" title={t("workspace.loadingTitle")} />
+  }
+
+  const unavailable = renderUnavailableWorkspace(plugin, detailLink, t, Boolean(loadedModule))
   if (unavailable) return unavailable
 
-  const loadedModule = runtime.loadedPlugins[plugin.id]
   const loadError = runtime.errors[plugin.id] ?? (!loadedModule ? runtime.catalogError : null)
   if (loadError) {
     return <StatePanel kind="error" title={t("workspace.loadErrorTitle")} description={loadError} onRetry={runtime.refresh} />
@@ -122,10 +128,6 @@ function renderRuntimePendingOrError(
 export function HomePage() {
   const { pathFor, t } = useLocale()
   const runtime = usePluginRuntime()
-
-  if (isDemo) {
-    return <OverviewPage mode="overview" />
-  }
 
   if (runtime.catalogLoading && runtime.plugins.length === 0) {
     return <StatePanel kind="loading" title={t("overview.loadingTitle")} />

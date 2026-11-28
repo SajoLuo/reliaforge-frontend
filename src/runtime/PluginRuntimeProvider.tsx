@@ -117,6 +117,27 @@ async function loadPluginTarget(ctx: LoadTargetContext): Promise<void> {
   }
 }
 
+async function loadBuiltinDemoRecords(catalog: PluginView[]): Promise<{
+  activeIds: Set<string>
+  records: Record<string, LoadedRecord>
+}> {
+  const { DEMO_FRONTEND_PLUGINS } = await import("@/demo/demoPlugins")
+  const records: Record<string, LoadedRecord> = {}
+  const activeIds = new Set<string>()
+  for (const plugin of catalog) {
+    if (plugin.state !== "running" || plugin.frontend.ui_mode !== "esm") continue
+    const demoModule = DEMO_FRONTEND_PLUGINS[plugin.id]
+    if (!demoModule) continue
+    activeIds.add(plugin.id)
+    records[plugin.id] = {
+      entryUrl: `demo://builtin/${plugin.id}`,
+      styleUrl: null,
+      module: demoModule,
+    }
+  }
+  return { activeIds, records }
+}
+
 export function PluginRuntimeProvider({
   children,
   importModule = defaultModuleImporter,
@@ -143,6 +164,18 @@ export function PluginRuntimeProvider({
   }, [errors, loadedMap, t])
 
   const syncPlugins = useCallback(async (catalog: PluginView[], generation: number) => {
+    if (isDemo) {
+      const { activeIds, records } = await loadBuiltinDemoRecords(catalog)
+      if (generation !== generationRef.current) return
+      activeIdsRef.current = activeIds
+      loadedRef.current = records
+      setLoadedMap(records)
+      setErrors({})
+      errorsRef.current = {}
+      setLoadingIds([])
+      return
+    }
+
     const activeIds = new Set(catalog.filter(shouldLoadEsmPlugin).map((plugin) => plugin.id))
     activeIdsRef.current = activeIds
 
